@@ -10,7 +10,7 @@ are already checked; the build phase starts at T5.
 - [x] T4 — Models: `Meso4` and `MesoInception4` (+ `tests/test_models.py` passing)
 
 ## Data
-- [ ] T5 — `build_transforms` (resize 256, augmentation from cfg, normalize)
+- [x] T5 — `build_transforms` (resize 256, augmentation from cfg, normalize)
 - [ ] T6 — `build_dataloaders` (ImageFolder, assert real=0/fake=1, subsample, workers)
 - [ ] T7 — Download + arrange OpenForensics into `data/openforensics/{train,val,test}/{real,fake}` (see `scripts/download_data.md`)
 

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MesoNet Reproduction — Project Planner</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171d2b; --panel2:#1e2637; --line:#2a3348;
+    --text:#e7ecf5; --muted:#93a0b8; --accent:#5b9dff; --accent2:#7c5cff;
+    --done:#37c793; --pend:#3a4256; --warn:#ffb454;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(160deg,#0f1420,#131a29);color:var(--text);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:28px 20px 60px}
+  .wrap{max-width:920px;margin:0 auto}
+  header h1{margin:0 0 4px;font-size:26px;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted)}
+  .paper{color:var(--accent)}
+  .phases{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 10px}
+  .phase{padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);
+    font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .phase.done{color:var(--done);border-color:rgba(55,199,147,.4)}
+  .phase.active{color:var(--accent);border-color:rgba(91,157,255,.5);background:rgba(91,157,255,.08)}
+  .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+  .overall{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px;margin:14px 0 8px}
+  .overall .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .overall .pct{font-size:30px;font-weight:700}
+  .overall .count{color:var(--muted);font-size:14px}
+  .bar{height:10px;border-radius:6px;background:var(--panel2);overflow:hidden}
+  .bar>span{display:block;height:100%;width:0;border-radius:6px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s ease}
+
+  .nextcard{margin:12px 0 4px;padding:14px 16px;border-radius:var(--radius);
+    background:rgba(91,157,255,.08);border:1px solid rgba(91,157,255,.35);display:flex;
+    align-items:center;gap:12px}
+  .nextcard .lbl{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+  .nextcard .task{font-weight:600}
+  .nextcard.alldone{background:rgba(55,199,147,.1);border-color:rgba(55,199,147,.4)}
+
+  section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    margin:14px 0;overflow:hidden}
+  .sechead{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;user-select:none}
+  .sechead h2{font-size:16px;margin:0;flex:1}
+  .sechead .mini{color:var(--muted);font-size:13px}
+  .sechead .chev{color:var(--muted);transition:transform .2s}
+  section.collapsed .chev{transform:rotate(-90deg)}
+  section.collapsed .tasks{display:none}
+  .secbar{height:4px;background:var(--panel2)}
+  .secbar>span{display:block;height:100%;background:var(--done);width:0;transition:width .35s}
+  .tasks{padding:6px 8px 12px}
+  .task{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:10px}
+  .task:hover{background:var(--panel2)}
+  .task input{appearance:none;min-width:20px;height:20px;margin-top:1px;border:2px solid var(--line);
+    border-radius:6px;background:transparent;cursor:pointer;position:relative}
+  .task input:checked{background:var(--done);border-color:var(--done)}
+  .task input:checked::after{content:"✓";position:absolute;top:-2px;left:3px;color:#06231a;
+    font-size:14px;font-weight:800}
+  .task .body{flex:1}
+  .task .id{display:inline-block;font:600 11px/1 ui-monospace,monospace;color:var(--accent2);
+    background:rgba(124,92,255,.12);padding:3px 6px;border-radius:5px;margin-right:8px;vertical-align:1px}
+  .task .title{font-weight:500}
+  .task.done .title{color:var(--muted);text-decoration:line-through}
+  .task .hint{color:var(--muted);font-size:13px;margin-top:2px}
+  .task .id.warn{color:var(--warn);background:rgba(255,180,84,.12)}
+
+  .notes{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:14px 0}
+  .notes h2{font-size:15px;margin:0 0 8px}
+  .notes textarea{width:100%;min-height:90px;resize:vertical;background:var(--panel2);color:var(--text);
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:14px/1.5 inherit}
+  .rules{color:var(--muted);font-size:13px;margin:16px 0;padding:14px 18px;background:var(--panel);
+    border:1px dashed var(--line);border-radius:var(--radius)}
+  .rules b{color:var(--text)}
+  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px;color:var(--muted);font-size:13px}
+  button.reset{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;
+    padding:7px 12px;cursor:pointer;font:13px inherit}
+  button.reset:hover{color:var(--text);border-color:var(--muted)}
+  .save{opacity:0;transition:opacity .3s;color:var(--done)}
+  .save.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MesoNet Reproduction</h1>
+    <p>Deepfake detection · <span class="paper">arXiv:1809.00888</span> · PyTorch + MPS on Apple Silicon</p>
+  </header>
+
+  <div class="phases">
+    <div class="phase done"><span class="dot"></span>Phase 1 · Pick paper</div>
+    <div class="phase done"><span class="dot"></span>Phase 2 · Plan &amp; scaffold</div>
+    <div class="phase active"><span class="dot"></span>Phase 3 · Build</div>
+  </div>
+
+  <div class="overall">
+    <div class="top">
+      <div><span class="pct" id="pct">0%</span> <span class="count" id="count"></span></div>
+      <span class="save" id="save">saved ✓</span>
+    </div>
+    <div class="bar"><span id="obar"></span></div>
+  </div>
+
+  <div class="nextcard" id="next">
+    <div>
+      <div class="lbl">Next up</div>
+      <div class="task" id="nexttask">—</div>
+    </div>
+  </div>
+
+  <div id="sections"></div>
+
+  <div class="notes">
+    <h2>Scratchpad</h2>
+    <textarea id="notes" placeholder="Running notes — blockers, numbers you're hitting, FF++ access status, ideas…"></textarea>
+  </div>
+
+  <div class="rules">
+    <b>Workflow reminders:</b> device is <b>mps</b>, never cuda · one task at a time · quick-check
+    (<code>pytest -q</code> or a 1-epoch run) before checking off · commit with the task id
+    (e.g. <code>git commit -m "T9: training loop"</code>) · only FaceForensics++ is paper-comparable.
+  </div>
+
+  <div class="footer">
+    <span>Progress is saved in this browser. Mirrors <b>TASKS.md</b>.</span>
+    <button class="reset" id="reset">Reset progress</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  { name:"Setup", tasks:[
+    ["T1","Repo structure, requirements.txt, .gitignore",true,""],
+    ["T2","configs/default.yaml — no hardcoded hyperparameters",true,""],
+    ["T3","Utils: get_device (MPS-first), set_seed, load_config",true,""],
+    ["T4","Models: Meso4 & MesoInception4 (+ tests passing)",true,"~27,977 / 28,615 params — matches the paper"],
+  ]},
+  { name:"Data", tasks:[
+    ["T5","build_transforms — resize 256, augmentation, normalize",false,""],
+    ["T6","build_dataloaders — ImageFolder, assert real=0/fake=1, subsample",false,""],
+    ["T7","Download + arrange OpenForensics (no access form) — START HERE",false,"see scripts/download_data.md"],
+  ]},
+  { name:"Training & evaluation", tasks:[
+    ["T8","Wire model + data in src/train.py; move to device",false,""],
+    ["T9","BCEWithLogits + Adam; loop, checkpoint best AUC, early stop, logging",false,""],
+    ["T10","src/eval.py — load checkpoint, run test set, metrics table",false,""],
+    ["T11","Metrics + plots: accuracy, AUC, P/R/F1, confusion matrix, ROC",false,""],
+    ["T12","Train Meso-4 & MesoInception-4 on OpenForensics; baseline numbers",false,""],
+  ]},
+  { name:"Paper reproduction (FaceForensics++)", tasks:[
+    ["T13","Request FF++ access (Google form) — do this day 1, in parallel",false,"the only paper-comparable dataset"],
+    ["T14","extract_faces_ffpp.py — frames → face crops → standard layout",false,"split by source video (no leakage)"],
+    ["T15","Train per method; target ~98% (Deepfakes) / ~95% (Face2Face)",false,""],
+    ["T16","Fill the paper-vs-mine table in README",false,""],
+  ]},
+  { name:"Verification", tasks:[
+    ["T17","Verify vs. paper → write docs/paper_diff.md",false,"template already in repo"],
+  ]},
+  { name:"Phase 3 — Extensions", tasks:[
+    ["T18","Cross-dataset generalization — same FF++ checkpoint on all datasets",false,"the headline experiment"],
+    ["T19","XceptionNet baseline on the same splits",false,""],
+    ["T20","Threshold tuning — sweep, report before/after per dataset",false,""],
+    ["T21","Final README pass — results tables + reproduce command + write-up",false,""],
+  ]},
+];
+
+const KEY="mesonet-planner-v1";
+const NOTEKEY="mesonet-planner-notes";
+const COLKEY="mesonet-planner-collapsed";
+let state = JSON.parse(localStorage.getItem(KEY) || "{}");
+let collapsed = JSON.parse(localStorage.getItem(COLKEY) || "{}");
+
+function isDone(id, def){ return (id in state) ? state[id] : def; }
+
+const secEl = document.getElementById("sections");
+DATA.forEach((sec,si)=>{
+  const s=document.createElement("section");
+  if(collapsed[sec.name]) s.classList.add("collapsed");
+  s.innerHTML =
+    `<div class="sechead"><h2>${sec.name}</h2><span class="mini" data-mini></span><span class="chev">▾</span></div>
+     <div class="secbar"><span data-secbar></span></div>
+     <div class="tasks"></div>`;
+  const tasksEl=s.querySelector(".tasks");
+  sec.tasks.forEach(([id,title,def,hint])=>{
+    const row=document.createElement("label");
+    row.className="task";
+    const warn = (id==="T13")?" warn":"";
+    row.innerHTML =
+      `<input type="checkbox" data-id="${id}" data-def="${def}">
+       <span class="body"><span class="id${warn}">${id}</span><span class="title">${title}</span>
+       ${hint?`<div class="hint">${hint}</div>`:""}</span>`;
+    const cb=row.querySelector("input");
+    cb.checked=isDone(id,def);
+    if(cb.checked) row.classList.add("done");
+    cb.addEventListener("change",()=>{
+      state[id]=cb.checked;
+      localStorage.setItem(KEY,JSON.stringify(state));
+      row.classList.toggle("done",cb.checked);
+      render(); flashSaved();
+    });
+    tasksEl.appendChild(row);
+  });
+  s.querySelector(".sechead").addEventListener("click",e=>{
+    if(e.target.tagName==="INPUT")return;
+    s.classList.toggle("collapsed");
+    collapsed[sec.name]=s.classList.contains("collapsed");
+    localStorage.setItem(COLKEY,JSON.stringify(collapsed));
+  });
+  secEl.appendChild(s);
+});
+
+function render(){
+  let total=0, done=0;
+  DATA.forEach(sec=>{
+    let st=0,sd=0;
+    sec.tasks.forEach(([id,,def])=>{ total++; st++; const d=isDone(id,def); if(d){done++;sd++;} });
+    const secNode=[...secEl.children].find(n=>n.querySelector("h2").textContent===sec.name);
+    secNode.querySelector("[data-mini]").textContent=`${sd}/${st}`;
+    secNode.querySelector("[data-secbar]").style.width=(sd/st*100)+"%";
+  });
+  const pct=Math.round(done/total*100);
+  document.getElementById("pct").textContent=pct+"%";
+  document.getElementById("count").textContent=`· ${done} of ${total} tasks`;
+  document.getElementById("obar").style.width=pct+"%";
+
+  // next task = first not-done in order
+  let next=null;
+  outer: for(const sec of DATA){ for(const [id,title,def] of sec.tasks){ if(!isDone(id,def)){ next=[id,title]; break outer; } } }
+  const card=document.getElementById("next");
+  const nt=document.getElementById("nexttask");
+  if(next){ card.classList.remove("alldone"); nt.innerHTML=`<span class="id">${next[0]}</span>${next[1]}`; }
+  else { card.classList.add("alldone"); nt.textContent="🎉 All tasks complete — ship it."; }
+}
+
+function flashSaved(){ const s=document.getElementById("save"); s.classList.add("show"); setTimeout(()=>s.classList.remove("show"),900); }
+
+const notes=document.getElementById("notes");
+notes.value=localStorage.getItem(NOTEKEY)||"";
+notes.addEventListener("input",()=>{ localStorage.setItem(NOTEKEY,notes.value); flashSaved(); });
+
+document.getElementById("reset").addEventListener("click",()=>{
+  if(confirm("Reset all progress and notes?")){ localStorage.removeItem(KEY); localStorage.removeItem(NOTEKEY);
+    state={}; location.reload(); }
+});
+
+render();
+</script>
+</body>
+</html>
