@@ -25,7 +25,7 @@ are already checked; the build phase starts at T5.
 - [x] T13 — Request FF++ access (Google form) — access granted; c23 videos (original/Deepfakes/Face2Face, 3×1000) at `~/mesonet-data/faceforensics_raw`
 - [x] T14 — `scripts/extract_faces_ffpp.py`: frames → face crops → standard layout, split by source video — official splits; 59,997/60,000 frames detected; roots at `~/mesonet-data/ff_{deepfakes,face2face}`
 - [x] T15 — Train per method (Deepfakes, Face2Face); target ~98% / ~95% accuracy, AUC ~0.99 — c23 results: Meso-4 DF 0.934/0.985, F2F 0.915/0.968; MesoInception-4 DF 0.910/0.982, F2F 0.923/0.970 (acc/AUC)
-- [ ] T16 — Fill the "paper vs. mine" results table in README (FF++ only)
+- [x] T16 — Fill the "paper vs. mine" results table in README (FF++ only)
 
 ## Verification
 - [ ] T17 — Verify implementation against the paper; write `docs/paper_diff.md` listing every

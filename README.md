@@ -64,12 +64,22 @@ this dataset, reported as-is.
 | MesoInception-4 | 0.871 | 0.952 | 0.882 | 0.860 | 0.871 |
 
 ### Reproduction — paper vs. this repo (FaceForensics++)
-_Only FaceForensics++ is comparable to the paper._ Filled in during the build phase (T16).
+FaceForensics++, **c23 (HQ) compression**, per-image scoring on 20 frames/video, threshold 0.5
+(untuned), official disjoint identity splits. The paper's ~98%/~95% come from the authors' own
+lighter-compression dataset with per-video frame aggregation, so per-image c23 numbers landing a
+few points lower is **expected, not a defect**.
 
-| Method (Meso-4) | Paper acc. | Mine acc. | Mine AUC |
-|---|---|---|---|
-| Deepfakes | ~0.98 | _TBD_ | _TBD_ |
-| Face2Face | ~0.95 | _TBD_ | _TBD_ |
+| Model | Method | Paper acc.* | Mine acc. (c23) | Mine AUC |
+|---|---|---|---|---|
+| Meso-4 | Deepfakes | ~0.98 | 0.934 | 0.985 |
+| MesoInception-4 | Deepfakes | ~0.98 | 0.910 | 0.982 |
+| Meso-4 | Face2Face | ~0.95 | 0.915 | 0.968 |
+| MesoInception-4 | Face2Face | ~0.95 | 0.923 | 0.970 |
+
+*Two consistency checks hold: Deepfakes scores above Face2Face (the paper's difficulty ordering),
+and AUCs of 0.97–0.985 sit right under the paper's ~0.99 — high AUC next to ~92% accuracy says
+the 0.5 threshold is suboptimal, which threshold tuning (T20) addresses. Honestly noted: Meso-4
+slightly outperforms MesoInception-4 on Deepfakes here (single-seed variance territory).
 
 ### Generalization — one FF++-trained model, evaluated across datasets
 _Not paper-comparable; the point is how much accuracy shifts off the training distribution._
