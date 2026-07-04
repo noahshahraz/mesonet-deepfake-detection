@@ -12,7 +12,7 @@ are already checked; the build phase starts at T5.
 ## Data
 - [x] T5 — `build_transforms` (resize 256, augmentation from cfg, normalize)
 - [x] T6 — `build_dataloaders` (ImageFolder, assert real=0/fake=1, subsample, workers)
-- [ ] T7 — Download + arrange OpenForensics into `data/openforensics/{train,val,test}/{real,fake}` (see `scripts/download_data.md`)
+- [x] T7 — Download + arrange OpenForensics into `data/openforensics/{train,val,test}/{real,fake}` (see `scripts/download_data.md`) — stored at `~/mesonet-data/openforensics` (outside Drive); 140,002 / 39,428 / 10,905 images
 
 ## Training & evaluation
 - [x] T8 — Wire model + data in `src/train.py`; move to `device`

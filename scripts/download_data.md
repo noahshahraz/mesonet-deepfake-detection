@@ -2,6 +2,9 @@
 
 All datasets normalise to: `data/<name>/<split>/<real|fake>/*.jpg`
 
+> **This machine:** datasets live at `~/mesonet-data/<name>/...` (outside the Google-Drive-synced
+> repo) — pass `--data-root ~/mesonet-data/<name>` to `src.train` / `src.eval`, or set `data.root`.
+
 ## 1. OpenForensics — `data/openforensics/` (START HERE, no form)
 Kaggle: `manjilkarki/deepfake-and-real-images` — 190,335 pre-cropped 256×256 faces
 (train 140,002 / val 39,428 / test 10,905), already in real/fake folders.
