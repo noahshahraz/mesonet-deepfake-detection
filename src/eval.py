@@ -8,13 +8,17 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
+from pathlib import Path
 
+import numpy as np
 import torch
 
 from src.data import build_eval_loader
 from src.models import build_model
 from src.utils import get_device, load_config, predict_probs, set_seed
 from src.utils.metrics import compute_metrics
+from src.utils.plots import save_confusion_matrix, save_roc_curve
 
 
 def parse_args() -> argparse.Namespace:
@@ -72,6 +76,26 @@ def main() -> None:
     metrics = compute_metrics(labels, probs, threshold=threshold)
     print(f"\n[eval] {model_name} on {cfg.data.name} (threshold {threshold}):\n")
     print_metrics_table(metrics, cfg.eval.metrics)
+
+    # T11 artefacts: metrics JSON, raw labels/probs (reused by T20 threshold tuning), plots.
+    out_dir = Path("outputs")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = f"{model_name}_train-{trained_on}_eval-{cfg.data.name}"
+    record = {
+        "model": model_name,
+        "trained_on": trained_on,
+        "eval_dataset": cfg.data.name,
+        "checkpoint": str(args.checkpoint),
+        "threshold": threshold,
+        "n_images": int(labels.shape[0]),
+        **metrics,
+    }
+    with open(out_dir / f"{stem}.json", "w") as f:
+        json.dump(record, f, indent=2)
+    np.savez(out_dir / f"{stem}_probs.npz", labels=labels, probs=probs)
+    save_roc_curve(labels, probs, metrics["auc"], out_dir / f"{stem}_roc.png")
+    save_confusion_matrix(metrics["confusion_matrix"], out_dir / f"{stem}_cm.png")
+    print(f"\n[eval] saved metrics JSON, probs and plots to {out_dir}/{stem}*")
 
 
 if __name__ == "__main__":
