@@ -44,10 +44,22 @@ form); request **FaceForensics++** access in parallel.
 | 140k Real/Fake (`xhlulu`) | generalization | 140,002 | StyleGAN synthetic |
 
 ## Reproduce (one line)
+Arrange a dataset per [`scripts/download_data.md`](scripts/download_data.md) first; pass
+`--data-root` if it lives outside the repo (e.g. `~/mesonet-data/openforensics` on this machine —
+omit the flag if you used the default `data/openforensics`).
+
 ```bash
-# train then evaluate Meso-4 end-to-end using the default config
-python -m src.train --config configs/default.yaml && \
-python -m src.eval  --config configs/default.yaml --checkpoint checkpoints/best.pth
+# train then evaluate Meso-4 end-to-end (full OpenForensics: ~2.5 h on an M-series MacBook, MPS)
+python -m src.train --config configs/default.yaml --data-root ~/mesonet-data/openforensics && \
+python -m src.eval  --config configs/default.yaml --data-root ~/mesonet-data/openforensics --checkpoint checkpoints/best.pth
+```
+
+Reviewer-friendly fast variant (~5 min, same code path, lower numbers). Caution: run names are
+`<model>_<dataset>`, so this **overwrites** `checkpoints/best.pth` and the full-run
+`meso4_openforensics` checkpoint/outputs if you have them:
+```bash
+python -m src.train --config configs/default.yaml --data-root ~/mesonet-data/openforensics --max-per-class-train 2000 --epochs 3 && \
+python -m src.eval  --config configs/default.yaml --data-root ~/mesonet-data/openforensics --checkpoint checkpoints/best.pth
 ```
 
 ## Results
@@ -69,17 +81,24 @@ FaceForensics++, **c23 (HQ) compression**, per-image scoring on 20 frames/video,
 lighter-compression dataset with per-video frame aggregation, so per-image c23 numbers landing a
 few points lower is **expected, not a defect**.
 
-| Model | Method | Paper acc.* | Mine acc. (c23) | Mine AUC |
-|---|---|---|---|---|
-| Meso-4 | Deepfakes | ~0.98 | 0.934 | 0.985 |
-| MesoInception-4 | Deepfakes | ~0.98 | 0.910 | 0.982 |
-| Meso-4 | Face2Face | ~0.95 | 0.915 | 0.968 |
-| MesoInception-4 | Face2Face | ~0.95 | 0.923 | 0.970 |
+| Model | Method | Paper acc.* | Mine acc. (c23) | Mine acc. (tuned t†) | Mine AUC |
+|---|---|---|---|---|---|
+| Meso-4 | Deepfakes | ~0.98 | 0.934 | 0.934 (t=0.50) | 0.985 |
+| MesoInception-4 | Deepfakes | ~0.98 | 0.910 | 0.928 (t=0.69) | 0.982 |
+| Meso-4 | Face2Face | ~0.95 | 0.915 | 0.913 (t=0.53) | 0.968 |
+| MesoInception-4 | Face2Face | ~0.95 | 0.923 | 0.922 (t=0.66) | 0.970 |
 
 *Two consistency checks hold: Deepfakes scores above Face2Face (the paper's difficulty ordering),
-and AUCs of 0.97–0.985 sit right under the paper's ~0.99 — high AUC next to ~92% accuracy says
-the 0.5 threshold is suboptimal, which threshold tuning (T20) addresses. Honestly noted: Meso-4
-slightly outperforms MesoInception-4 on Deepfakes here (single-seed variance territory).
+and AUCs of 0.97–0.985 sit right under the paper's ~0.99. Honestly noted: Meso-4 slightly
+outperforms MesoInception-4 on Deepfakes here (single-seed variance territory). For a like-for-like
+anchor, the paper's own *per-image* c23 Face2Face accuracies are 92.4%/93.4% — within ~1 pt of ours;
+the 95–98% headlines are per-video aggregates.
+
+†Threshold selected on the **validation** split (`scripts/tune_threshold.py`, T20), never on test.
+Tuning only matters where precision/recall was imbalanced — MesoInception-4/Deepfakes gains
++1.8 pts at t=0.69; the other three runs were already calibrated at 0.5 (the tiny negative deltas
+are honest val→test disagreement). The residual gap to the paper's headlines is therefore the
+per-image c23 protocol, not calibration.
 
 ### Generalization — one FF++-trained model, evaluated across datasets
 _Not paper-comparable; the point is how performance shifts off the training distribution._
@@ -94,27 +113,35 @@ threshold miscalibration, an AUC drop is true generalization loss.
 | OpenForensics | 0.467 | 0.405 | 0.477 | 0.295 |
 | 140k (StyleGAN) | 0.498 | 0.403 | 0.499 | 0.334 |
 
-Xception (`legacy_xception`, timm, ImageNet-pretrained, **20.8M params vs MesoNet's 28k**,
-fine-tuned on the same ff_deepfakes root at 256×256 — global pooling makes the native-299 input
-size a non-issue) answers the capacity question: it is clearly stronger in-domain (0.976/0.997)
-and transfers better across methods (AUC 0.72 vs 0.62), but cross-dataset it inverts **at least
-as hard** (AUC 0.29/0.33). Single-domain training, not model capacity, is what fails to
-generalize here.
+**Generalization findings.** Neither model transfers across datasets. Cross-*method* transfer
+inside the same preprocessing domain retains usable signal (Meso-4 AUC 0.62; Xception 0.72), but
+cross-*dataset* the signal is essentially lost: Meso-4's AUC ≈ 0.40 on both external sets is a
+**mild ranking inversion** — a faint anti-correlation, not a reliable inverted classifier — and
+the effect is symmetric (the reverse direction, OpenForensics→FF++, gives AUC 0.46). The
+mechanism is consistent with low-level cue mismatch: the mesoscopic compression/resampling
+artifacts learned on c23 video frames point the wrong way elsewhere — on 140k the model flags
+6/10,000 fakes, plausibly because StyleGAN fakes look *smoother* to a compression-artifact
+detector than FFHQ reals. Xception (`legacy_xception`, timm, ImageNet-pretrained, **20.8M params
+vs MesoNet's 28k**, fine-tuned on the same root at 256×256 — global pooling makes the native-299
+input a non-issue) answers the capacity question: clearly stronger in-domain (0.976/0.997) and
+across methods, yet its cross-dataset inversion is *more* pronounced (AUC 0.29/0.33). The
+brittleness comes from single-domain training, not model capacity. Note that a decision
+threshold cannot rescue an AUC below 0.5 (the ranking itself is inverted), so the cross-dataset
+numbers stand as-is — threshold tuning (T20) applies only in-domain.
 
-**The finding is starker than a "drop":** cross-*method* transfer inside the same preprocessing
-domain retains real signal (AUC 0.62), but cross-*dataset* transfer collapses to **below chance**
-(AUC ≈ 0.40 on both external sets — a symmetric effect; the reverse direction,
-OpenForensics→FF++, gives AUC 0.46). Below-chance AUC means the ranking *inverts*: the
-mesoscopic compression/resampling cues MesoNet learns on c23 video frames anti-correlate with
-fakeness elsewhere — on 140k the model calls nearly everything real (6/10,000 fakes flagged),
-consistent with StyleGAN fakes looking *smoother* to a compression-artifact detector than FFHQ
-reals. Threshold tuning cannot fix an inverted ranking; this is a genuine domain-shift result,
-not a calibration artifact.
+## Limitations / future work
+- **Single seed** (42) throughout — the Meso-4 vs MesoInception-4 ordering on Deepfakes sits
+  within plausible seed variance; multi-seed runs would tighten every table.
+- **Per-image evaluation only.** The paper's 98%/95% headlines average predictions per video;
+  adding per-video aggregation is the most likely single step toward closing the residual gap.
+- **Loss deviation:** the paper trains squared error on a sigmoid; we use `BCEWithLogitsLoss`
+  (see [`docs/paper_diff.md`](docs/paper_diff.md) for this and every other difference, incl. the
+  paper's step lr schedule and hue augmentation that we omit).
 
 ## Repo layout
 ```
 configs/default.yaml      all hyperparameters (nothing hardcoded)
-src/models/               Meso4, MesoInception4
+src/models/               Meso4, MesoInception4 (+ timm Xception baseline)
 src/data/                 dataset + transforms
 src/utils/                device (MPS-first), seed, config, metrics
 src/train.py  src/eval.py entry points

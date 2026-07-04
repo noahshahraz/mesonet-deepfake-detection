@@ -41,5 +41,5 @@ are already checked; the build phase starts at T5.
 - [x] T20 — Threshold tuning: sweep decision threshold (`utils.metrics.best_threshold`),
       report accuracy/F1 before vs. after per dataset — val-selected; only MesoInception-4/DF
       gains (+1.8 pts @ t*=0.69); others already calibrated at 0.5
-- [ ] T21 — Final README pass: results tables + one-line reproduce command + short write-up of the
-      generalization finding
+- [x] T21 — Final README pass: results tables + one-line reproduce command + short write-up of the
+      generalization finding — reproduce command verified end-to-end (fast variant); pytest 10/10
