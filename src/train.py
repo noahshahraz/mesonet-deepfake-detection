@@ -6,10 +6,19 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
+import math
+import shutil
+from pathlib import Path
+
+import torch
+import torch.nn as nn
+from tqdm import tqdm
 
 from src.data import build_dataloaders
 from src.models import build_model
-from src.utils import get_device, load_config, set_seed
+from src.utils import get_device, load_config, predict_probs, set_seed
+from src.utils.metrics import compute_metrics
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,6 +49,28 @@ def apply_overrides(cfg, args: argparse.Namespace):
     return cfg
 
 
+def build_optimizer(cfg, model: nn.Module) -> torch.optim.Optimizer:
+    name = cfg.train.optimizer.lower()
+    if name != "adam":
+        raise ValueError(f"Unsupported optimizer '{name}' — the paper (and this repo) use adam")
+    return torch.optim.Adam(model.parameters(), lr=cfg.train.lr, weight_decay=cfg.train.weight_decay)
+
+
+def train_one_epoch(model, loader, criterion, optimizer, device, epoch: int) -> float:
+    model.train()
+    total_loss, n_seen = 0.0, 0
+    for x, y in tqdm(loader, desc=f"epoch {epoch}", leave=False):
+        x = x.to(device)
+        y = y.float().unsqueeze(1).to(device)
+        optimizer.zero_grad()
+        loss = criterion(model(x), y)
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.item() * x.shape[0]
+        n_seen += x.shape[0]
+    return total_loss / max(n_seen, 1)
+
+
 def main() -> None:
     args = parse_args()
     cfg = apply_overrides(load_config(args.config), args)
@@ -63,11 +94,53 @@ def main() -> None:
     n_params = sum(p.numel() for p in model.parameters())
     print(f"[train] model = {cfg.model.name} ({n_params:,} params) on {device}")
 
-    # Sanity: one forward pass on a real batch, on-device. (T9 replaces this with the loop.)
-    x, y = next(iter(train_loader))
-    logits = model(x.to(device))
-    assert logits.shape == (x.shape[0], cfg.model.num_classes)
-    print(f"[train] sanity forward OK: batch {tuple(x.shape)} -> logits {tuple(logits.shape)}")
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = build_optimizer(cfg, model)
+
+    run_name = f"{cfg.model.name}_{cfg.data.name}"
+    ckpt_dir = Path(cfg.train.checkpoint_dir)
+    ckpt_dir.mkdir(parents=True, exist_ok=True)
+    ckpt_path = ckpt_dir / f"{run_name}_best.pth"
+    log_dir = Path(cfg.train.log_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"{run_name}.jsonl"
+    log_path.write_text("")  # fresh log per run
+
+    best_auc, best_epoch, epochs_without_improvement = -math.inf, -1, 0
+    for epoch in range(1, cfg.train.epochs + 1):
+        train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device, epoch)
+        labels, probs = predict_probs(model, val_loader, device)
+        val = compute_metrics(labels, probs, threshold=cfg.eval.threshold)
+        print(
+            f"[epoch {epoch:3d}] train_loss {train_loss:.4f} | "
+            f"val acc {val['accuracy']:.4f} auc {val['auc']:.4f} f1 {val['f1']:.4f}"
+        )
+        with open(log_path, "a") as f:
+            f.write(json.dumps({"epoch": epoch, "train_loss": train_loss,
+                                **{f"val_{k}": v for k, v in val.items()}}) + "\n")
+
+        if not math.isnan(val["auc"]) and val["auc"] > best_auc:
+            best_auc, best_epoch, epochs_without_improvement = val["auc"], epoch, 0
+            torch.save(
+                {
+                    "model_state": model.state_dict(),
+                    "model_name": cfg.model.name,
+                    "dataset": cfg.data.name,
+                    "epoch": epoch,
+                    "val_metrics": val,
+                    "config": dict(cfg),
+                },
+                ckpt_path,
+            )
+            shutil.copyfile(ckpt_path, ckpt_dir / "best.pth")  # generic name for the README one-liner
+        else:
+            epochs_without_improvement += 1
+            if epochs_without_improvement >= cfg.train.early_stopping_patience:
+                print(f"[train] early stop at epoch {epoch} (no val AUC gain for "
+                      f"{cfg.train.early_stopping_patience} epochs)")
+                break
+
+    print(f"[train] best val AUC {best_auc:.4f} @ epoch {best_epoch} -> {ckpt_path}")
 
 
 if __name__ == "__main__":

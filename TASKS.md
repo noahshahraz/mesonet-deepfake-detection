@@ -16,7 +16,7 @@ are already checked; the build phase starts at T5.
 
 ## Training & evaluation
 - [x] T8 — Wire model + data in `src/train.py`; move to `device`
-- [ ] T9 — Loss (`BCEWithLogitsLoss`) + `Adam(lr)`; epoch loop, checkpoint best val AUC, early stopping, logging
+- [x] T9 — Loss (`BCEWithLogitsLoss`) + `Adam(lr)`; epoch loop, checkpoint best val AUC, early stopping, logging
 - [ ] T10 — `src/eval.py`: load checkpoint, run test set, print metrics table
 - [ ] T11 — Metrics + plots: accuracy, AUC, precision/recall/F1, confusion matrix, ROC curve saved to `outputs/`
 - [ ] T12 — Train Meso-4 and MesoInception-4 on OpenForensics; record baseline numbers
