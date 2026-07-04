@@ -82,14 +82,27 @@ the 0.5 threshold is suboptimal, which threshold tuning (T20) addresses. Honestl
 slightly outperforms MesoInception-4 on Deepfakes here (single-seed variance territory).
 
 ### Generalization — one FF++-trained model, evaluated across datasets
-_Not paper-comparable; the point is how much accuracy shifts off the training distribution._
-Filled in during Phase 3 (T18–T19).
+_Not paper-comparable; the point is how performance shifts off the training distribution._
+Source model: `meso4_ff_deepfakes_best.pth` (FF++ Deepfakes, epoch 26), **weights frozen**,
+threshold 0.5 (untuned). AUC is the primary cross-dataset metric — accuracy loss can be partly
+threshold miscalibration, an AUC drop is true generalization loss.
 
 | Eval dataset | Meso-4 acc. | Meso-4 AUC | Xception acc. |
 |---|---|---|---|
-| FaceForensics++ (in-domain) | _TBD_ | _TBD_ | _TBD_ |
-| OpenForensics | _TBD_ | _TBD_ | _TBD_ |
-| 140k (StyleGAN) | _TBD_ | _TBD_ | _TBD_ |
+| FF++ Deepfakes (in-domain reference) | 0.934 | 0.985 | _TBD (T19)_ |
+| FF++ Face2Face (cross-method control) | 0.543 | 0.621 | — |
+| OpenForensics | 0.467 | 0.405 | _TBD (T19)_ |
+| 140k (StyleGAN) | 0.498 | 0.403 | _TBD (T19)_ |
+
+**The finding is starker than a "drop":** cross-*method* transfer inside the same preprocessing
+domain retains real signal (AUC 0.62), but cross-*dataset* transfer collapses to **below chance**
+(AUC ≈ 0.40 on both external sets — a symmetric effect; the reverse direction,
+OpenForensics→FF++, gives AUC 0.46). Below-chance AUC means the ranking *inverts*: the
+mesoscopic compression/resampling cues MesoNet learns on c23 video frames anti-correlate with
+fakeness elsewhere — on 140k the model calls nearly everything real (6/10,000 fakes flagged),
+consistent with StyleGAN fakes looking *smoother* to a compression-artifact detector than FFHQ
+reals. Threshold tuning cannot fix an inverted ranking; this is a genuine domain-shift result,
+not a calibration artifact.
 
 ## Repo layout
 ```

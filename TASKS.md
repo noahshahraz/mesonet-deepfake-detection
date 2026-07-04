@@ -33,8 +33,9 @@ are already checked; the build phase starts at T5.
       27,977/28,615 match exactly; found the paper uses MSE loss (not BCE) + a step lr schedule
 
 ## Phase 3 — Extensions
-- [ ] T18 — Cross-dataset generalization: evaluate the SAME FF++-trained checkpoint on
-      OpenForensics and 140k; build the generalization comparison table
+- [x] T18 — Cross-dataset generalization: evaluate the SAME FF++-trained checkpoint on
+      OpenForensics and 140k; build the generalization comparison table — AUC collapses below
+      chance off-dataset (0.405 / 0.403 vs 0.985 in-domain); cross-method control AUC 0.621
 - [ ] T19 — XceptionNet baseline: train/eval on the same splits; add to comparison
 - [ ] T20 — Threshold tuning: sweep decision threshold (`utils.metrics.best_threshold`),
       report accuracy/F1 before vs. after per dataset
