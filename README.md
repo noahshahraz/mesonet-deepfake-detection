@@ -52,6 +52,17 @@ python -m src.eval  --config configs/default.yaml --checkpoint checkpoints/best.
 
 ## Results
 
+### Baseline — OpenForensics (NOT paper-comparable)
+Full 190k-image Kaggle set (`manjilkarki/deepfake-and-real-images`), full train split (140,002
+images), best-val-AUC checkpoint, threshold 0.5. Both models reach val AUC ≈ 0.990; the test
+split is markedly harder than val (val acc ~0.93 vs test ~0.87) — a known distribution quirk of
+this dataset, reported as-is.
+
+| Model | Test acc. | AUC | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| Meso-4 | 0.871 | 0.953 | 0.892 | 0.846 | 0.868 |
+| MesoInception-4 | 0.871 | 0.952 | 0.882 | 0.860 | 0.871 |
+
 ### Reproduction — paper vs. this repo (FaceForensics++)
 _Only FaceForensics++ is comparable to the paper._ Filled in during the build phase (T16).
 

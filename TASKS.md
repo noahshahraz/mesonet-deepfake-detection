@@ -19,10 +19,10 @@ are already checked; the build phase starts at T5.
 - [x] T9 — Loss (`BCEWithLogitsLoss`) + `Adam(lr)`; epoch loop, checkpoint best val AUC, early stopping, logging
 - [x] T10 — `src/eval.py`: load checkpoint, run test set, print metrics table
 - [x] T11 — Metrics + plots: accuracy, AUC, precision/recall/F1, confusion matrix, ROC curve saved to `outputs/`
-- [ ] T12 — Train Meso-4 and MesoInception-4 on OpenForensics; record baseline numbers
+- [x] T12 — Train Meso-4 and MesoInception-4 on OpenForensics; record baseline numbers — test acc 0.871/0.871, AUC 0.953/0.952 (README)
 
 ## Paper reproduction (FaceForensics++)
-- [ ] T13 — Request FF++ access (Google form) — do this on day 1, in parallel
+- [x] T13 — Request FF++ access (Google form) — access granted; c23 videos (original/Deepfakes/Face2Face, 3×1000) at `~/mesonet-data/faceforensics_raw`
 - [x] T14 — `scripts/extract_faces_ffpp.py`: frames → face crops → standard layout, split by source video — official splits; 59,997/60,000 frames detected; roots at `~/mesonet-data/ff_{deepfakes,face2face}`
 - [ ] T15 — Train per method (Deepfakes, Face2Face); target ~98% / ~95% accuracy, AUC ~0.99
 - [ ] T16 — Fill the "paper vs. mine" results table in README (FF++ only)
