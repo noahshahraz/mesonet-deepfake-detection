@@ -11,7 +11,7 @@ are already checked; the build phase starts at T5.
 
 ## Data
 - [x] T5 — `build_transforms` (resize 256, augmentation from cfg, normalize)
-- [ ] T6 — `build_dataloaders` (ImageFolder, assert real=0/fake=1, subsample, workers)
+- [x] T6 — `build_dataloaders` (ImageFolder, assert real=0/fake=1, subsample, workers)
 - [ ] T7 — Download + arrange OpenForensics into `data/openforensics/{train,val,test}/{real,fake}` (see `scripts/download_data.md`)
 
 ## Training & evaluation
