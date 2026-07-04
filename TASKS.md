@@ -28,8 +28,9 @@ are already checked; the build phase starts at T5.
 - [x] T16 — Fill the "paper vs. mine" results table in README (FF++ only)
 
 ## Verification
-- [ ] T17 — Verify implementation against the paper; write `docs/paper_diff.md` listing every
-      difference (architecture, optimizer, augmentation, loss/sigmoid, thresholds)
+- [x] T17 — Verify implementation against the paper; write `docs/paper_diff.md` listing every
+      difference (architecture, optimizer, augmentation, loss/sigmoid, thresholds) — param counts
+      27,977/28,615 match exactly; found the paper uses MSE loss (not BCE) + a step lr schedule
 
 ## Phase 3 — Extensions
 - [ ] T18 — Cross-dataset generalization: evaluate the SAME FF++-trained checkpoint on
