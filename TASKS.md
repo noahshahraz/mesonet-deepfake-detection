@@ -23,7 +23,7 @@ are already checked; the build phase starts at T5.
 
 ## Paper reproduction (FaceForensics++)
 - [ ] T13 — Request FF++ access (Google form) — do this on day 1, in parallel
-- [ ] T14 — `scripts/extract_faces_ffpp.py`: frames → face crops → standard layout, split by source video
+- [x] T14 — `scripts/extract_faces_ffpp.py`: frames → face crops → standard layout, split by source video — official splits; 59,997/60,000 frames detected; roots at `~/mesonet-data/ff_{deepfakes,face2face}`
 - [ ] T15 — Train per method (Deepfakes, Face2Face); target ~98% / ~95% accuracy, AUC ~0.99
 - [ ] T16 — Fill the "paper vs. mine" results table in README (FF++ only)
 
