@@ -72,8 +72,13 @@ this dataset, reported as-is.
 
 | Model | Test acc. | AUC | Precision | Recall | F1 |
 |---|---|---|---|---|---|
-| Meso-4 | 0.871 | 0.953 | 0.892 | 0.846 | 0.868 |
+| Meso-4 | 0.867 | 0.946 | 0.881 | 0.852 | 0.866 |
 | MesoInception-4 | 0.871 | 0.952 | 0.882 | 0.860 | 0.871 |
+
+_Run-to-run note: a same-seed Meso-4 retrain (MPS training is not bit-deterministic) moved test
+accuracy 0.871→0.867 and AUC 0.953→0.946 at identical val AUC (0.990) — a fair picture of
+single-run variance on this test split; the table reports the run whose artifacts ship in
+`outputs/`._
 
 ### Reproduction — paper vs. this repo (FaceForensics++)
 FaceForensics++, **c23 (HQ) compression**, per-image scoring on 20 frames/video, threshold 0.5
@@ -117,7 +122,8 @@ threshold miscalibration, an AUC drop is true generalization loss.
 inside the same preprocessing domain retains usable signal (Meso-4 AUC 0.62; Xception 0.72), but
 cross-*dataset* the signal is essentially lost: Meso-4's AUC ≈ 0.40 on both external sets is a
 **mild ranking inversion** — a faint anti-correlation, not a reliable inverted classifier — and
-the effect is symmetric (the reverse direction, OpenForensics→FF++, gives AUC 0.46). The
+transfer fails in the reverse direction too (OpenForensics→FF++ sits at chance: AUC 0.46–0.50
+across two same-seed training runs). The
 mechanism is consistent with low-level cue mismatch: the mesoscopic compression/resampling
 artifacts learned on c23 video frames point the wrong way elsewhere — on 140k the model flags
 6/10,000 fakes, plausibly because StyleGAN fakes look *smoother* to a compression-artifact
