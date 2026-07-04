@@ -1,0 +1,20 @@
+# Core — install PyTorch with MPS support (macOS arm64 wheels ship MPS by default)
+torch>=2.2
+torchvision>=0.17
+
+# Config, data, metrics
+pyyaml>=6.0
+numpy>=1.24
+pillow>=10.0
+scikit-learn>=1.3      # roc_auc_score, confusion_matrix
+pandas>=2.0
+
+# Plots + progress
+matplotlib>=3.7
+tqdm>=4.65
+
+# Dataset download (FaceForensics++ is via the official script; Kaggle sets via this CLI)
+kaggle>=1.6
+
+# Dev
+pytest>=7.4

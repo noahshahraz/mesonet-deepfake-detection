@@ -1,0 +1,57 @@
+# MesoNet reproduction — default hyperparameters.
+# Nothing is hardcoded in src/; every knob lives here. Override with --config or CLI flags.
+
+seed: 42
+device: mps            # mps | cuda | cpu  (this project targets Apple Silicon MPS)
+
+model:
+  name: meso4          # meso4 | meso_inception4
+  dropout: 0.5
+  num_classes: 1       # single logit + BCEWithLogits (see note in README on paper's sigmoid)
+
+data:
+  # Point this at whichever dataset you are training on. The three we support are laid out
+  # identically as ImageFolder-style  <root>/<split>/<real|fake>/*.jpg
+  name: openforensics  # openforensics | faces140k | faceforensics
+  root: data/openforensics
+  train_split: train
+  val_split: val
+  test_split: test
+  image_size: 256
+  # Full reproduction: use ALL available images (null). FaceForensics++ extracts to ~15-20k
+  # faces, matching MesoNet's ~19k training size. For the large Kaggle generalization sets
+  # (OpenForensics 190k, 140k) override on the CLI, e.g. --max-per-class-train 20000, when you
+  # just want a fast iteration rather than a headline number.
+  max_per_class_train: null
+  max_per_class_eval: null
+  num_workers: 4
+  # ImageNet-ish normalization; set to null to use [0,1] scaling like the original Keras code.
+  normalize: true
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+augment:                # paper uses light augmentation
+  horizontal_flip: true
+  rotation_degrees: 15
+  zoom: 0.1
+  brightness: 0.1
+
+train:
+  epochs: 50            # headroom to converge; early stopping ends runs sooner
+  batch_size: 76        # matches the paper (~75); the net is tiny so 24GB is never the limit
+  lr: 0.001             # Adam, paper's setting
+  optimizer: adam
+  weight_decay: 0.0
+  early_stopping_patience: 8
+  checkpoint_dir: checkpoints
+  log_dir: runs
+
+eval:
+  threshold: 0.5        # decision threshold; Phase 3 tunes this
+  metrics: [accuracy, auc, precision, recall, f1, confusion_matrix]
+
+# Phase 3 — extensions
+extensions:
+  xception_baseline: false
+  cross_dataset_eval: false        # train once, evaluate the SAME weights on all datasets
+  tune_threshold: false

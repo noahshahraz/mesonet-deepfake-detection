@@ -1,0 +1,29 @@
+# Heavy folders — never commit
+data/
+checkpoints/
+runs/
+outputs/
+*.pth
+*.pt
+*.ckpt
+*.mp4
+*.avi
+
+# Kaggle credentials
+kaggle.json
+.kaggle/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
