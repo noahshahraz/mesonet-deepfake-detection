@@ -87,12 +87,19 @@ Source model: `meso4_ff_deepfakes_best.pth` (FF++ Deepfakes, epoch 26), **weight
 threshold 0.5 (untuned). AUC is the primary cross-dataset metric — accuracy loss can be partly
 threshold miscalibration, an AUC drop is true generalization loss.
 
-| Eval dataset | Meso-4 acc. | Meso-4 AUC | Xception acc. |
-|---|---|---|---|
-| FF++ Deepfakes (in-domain reference) | 0.934 | 0.985 | _TBD (T19)_ |
-| FF++ Face2Face (cross-method control) | 0.543 | 0.621 | — |
-| OpenForensics | 0.467 | 0.405 | _TBD (T19)_ |
-| 140k (StyleGAN) | 0.498 | 0.403 | _TBD (T19)_ |
+| Eval dataset | Meso-4 acc. | Meso-4 AUC | Xception acc. | Xception AUC |
+|---|---|---|---|---|
+| FF++ Deepfakes (in-domain reference) | 0.934 | 0.985 | 0.976 | 0.997 |
+| FF++ Face2Face (cross-method control) | 0.543 | 0.621 | 0.519 | 0.718 |
+| OpenForensics | 0.467 | 0.405 | 0.477 | 0.295 |
+| 140k (StyleGAN) | 0.498 | 0.403 | 0.499 | 0.334 |
+
+Xception (`legacy_xception`, timm, ImageNet-pretrained, **20.8M params vs MesoNet's 28k**,
+fine-tuned on the same ff_deepfakes root at 256×256 — global pooling makes the native-299 input
+size a non-issue) answers the capacity question: it is clearly stronger in-domain (0.976/0.997)
+and transfers better across methods (AUC 0.72 vs 0.62), but cross-dataset it inverts **at least
+as hard** (AUC 0.29/0.33). Single-domain training, not model capacity, is what fails to
+generalize here.
 
 **The finding is starker than a "drop":** cross-*method* transfer inside the same preprocessing
 domain retains real signal (AUC 0.62), but cross-*dataset* transfer collapses to **below chance**

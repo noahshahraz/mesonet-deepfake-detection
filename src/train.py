@@ -29,6 +29,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--dataset", default=None, help="dataset name; sets data.root to data/<name>")
     p.add_argument("--data-root", default=None, help="explicit data root (overrides --dataset root)")
     p.add_argument("--epochs", type=int, default=None)
+    p.add_argument("--batch-size", type=int, default=None,
+                   help="override train.batch_size (e.g. smaller for the Xception baseline)")
+    p.add_argument("--lr", type=float, default=None,
+                   help="override train.lr (e.g. lower for fine-tuning pretrained weights)")
     p.add_argument("--max-per-class-train", type=int, default=None,
                    help="cap images/class for fast iterations on the large Kaggle sets")
     return p.parse_args()
@@ -44,6 +48,10 @@ def apply_overrides(cfg, args: argparse.Namespace):
         cfg["data"]["root"] = args.data_root
     if args.epochs is not None:
         cfg["train"]["epochs"] = args.epochs
+    if args.batch_size is not None:
+        cfg["train"]["batch_size"] = args.batch_size
+    if args.lr is not None:
+        cfg["train"]["lr"] = args.lr
     if args.max_per_class_train is not None:
         cfg["data"]["max_per_class_train"] = args.max_per_class_train
     return cfg

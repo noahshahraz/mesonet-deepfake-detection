@@ -36,7 +36,8 @@ are already checked; the build phase starts at T5.
 - [x] T18 — Cross-dataset generalization: evaluate the SAME FF++-trained checkpoint on
       OpenForensics and 140k; build the generalization comparison table — AUC collapses below
       chance off-dataset (0.405 / 0.403 vs 0.985 in-domain); cross-method control AUC 0.621
-- [ ] T19 — XceptionNet baseline: train/eval on the same splits; add to comparison
+- [x] T19 — XceptionNet baseline: train/eval on the same splits; add to comparison — in-domain
+      0.976/0.997; cross-dataset also inverts (AUC 0.295/0.334) despite 20.8M pretrained params
 - [ ] T20 — Threshold tuning: sweep decision threshold (`utils.metrics.best_threshold`),
       report accuracy/F1 before vs. after per dataset
 - [ ] T21 — Final README pass: results tables + one-line reproduce command + short write-up of the

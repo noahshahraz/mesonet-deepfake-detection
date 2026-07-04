@@ -16,6 +16,9 @@ tqdm>=4.65
 # Dataset download (FaceForensics++ is via the official script; Kaggle sets via this CLI)
 kaggle>=1.6
 
+# XceptionNet baseline (T19)
+timm>=1.0
+
 # FF++ face extraction (scripts/extract_faces_ffpp.py)
 # NOTE: install facenet-pytorch with --no-deps — its pins would downgrade torch/torchvision.
 facenet-pytorch>=2.6
