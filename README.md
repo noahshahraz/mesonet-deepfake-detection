@@ -1,5 +1,17 @@
 # MesoNet — Deepfake Detection (reproduction)
 
+![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![PyTorch 2.12](https://img.shields.io/badge/PyTorch-2.12-EE4C2C?logo=pytorch&logoColor=white)
+![Apple Silicon MPS](https://img.shields.io/badge/Apple%20Silicon-MPS-000000?logo=apple&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-15%20passing-brightgreen)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![Live dashboard](https://img.shields.io/badge/%E2%96%B6%20Live-dashboard-0072B2)](https://noahshahraz.github.io/mesonet-deepfake-detection/dashboard.html)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero_concept.svg">
+  <img alt="Hero banner: MesoNet deepfake detection reproduced — two compact CNNs spot face forgeries at the mesoscopic scale; reproduced on FaceForensics++, stress-tested across datasets" src="assets/hero_concept.light.svg">
+</picture>
+
 A from-scratch PyTorch reproduction of **MesoNet** (Afchar, Nozick, Yamagishi & Echizen,
 *MesoNet: a Compact Facial Video Forgery Detection Network*, WIFS 2018,
 [arXiv:1809.00888](https://arxiv.org/abs/1809.00888)). Two deliberately tiny CNNs — **Meso-4** and
@@ -25,6 +37,11 @@ compression) and high-level semantics — where forgery artifacts survive.
 
 See [`src/models/`](src/models). Both nets pass `pytest -q` and come in under 50k parameters.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/architecture.dark.svg">
+  <img alt="Architecture diagram: Meso-4's four Conv-ReLU-BatchNorm-MaxPool blocks (8, 8, 16, 16 filters) feeding a small dense head, and MesoInception-4's dilated-convolution Inception modules replacing the first two blocks" src="assets/architecture.svg">
+</picture>
+
 ## Setup
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -42,6 +59,11 @@ form); request **FaceForensics++** access in parallel.
 | OpenForensics (`manjilkarki`) | quick baseline | 190,335 | forged faces, in-the-wild |
 | FaceForensics++ | **paper reproduction** | ~15–20k face crops | face-swap + reenactment |
 | 140k Real/Fake (`xhlulu`) | generalization | 140,002 | StyleGAN synthetic |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/pipeline.dark.svg">
+  <img alt="Pipeline diagram: FaceForensics++ videos are sampled 20 frames per video, faces are detected and cropped by MTCNN to 256 by 256, split by source identity into train, validation and test, then used for training and evaluation" src="assets/pipeline.svg">
+</picture>
 
 ## Reproduce (one line)
 Arrange a dataset per [`scripts/download_data.md`](scripts/download_data.md) first; pass
@@ -65,7 +87,20 @@ python -m src.eval  --config configs/default.yaml --data-root ~/mesonet-data/ope
 
 ## Results
 
-### Baseline — OpenForensics (NOT paper-comparable)
+> ⚠️ **Preliminary — multi-seed run in progress; figures and error bars will refresh on completion.**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig01_overview.dark.png">
+  <img alt="Four-panel overview figure: (a) our FaceForensics++ accuracies within a few points of the paper's; (b) the frozen Meso-4 checkpoint's AUC falling from 0.98 in-domain to about 0.40 on unseen datasets; (c) predicted-fake-probability histograms — cleanly separated in-domain, collapsed on new data; (d) parameter count versus cross-dataset AUC showing Xception fails the same way" src="assets/fig01_overview.png">
+</picture>
+
+_Every number in the figures traces to [`results/summary.json`](results/summary.json); regenerate
+with `python scripts/make_figures.py`. Explore interactively at the
+[**▶ live dashboard**](https://noahshahraz.github.io/mesonet-deepfake-detection/dashboard.html)._
+
+<details>
+<summary><b>Baseline — OpenForensics (NOT paper-comparable)</b> — full 190k-image Kaggle set, click to expand</summary>
+
 Full 190k-image Kaggle set (`manjilkarki/deepfake-and-real-images`), full train split (140,002
 images), best-val-AUC checkpoint, threshold 0.5. Both models reach val AUC ≈ 0.990; the test
 split is markedly harder than val (val acc ~0.93 vs test ~0.87) — a known distribution quirk of
@@ -75,6 +110,8 @@ this dataset, reported as-is.
 |---|---|---|---|---|---|
 | Meso-4 | 0.874 | 0.957 | 0.901 | 0.843 | 0.871 |
 | MesoInception-4 | 0.871 | 0.952 | 0.882 | 0.860 | 0.871 |
+
+</details>
 
 ### Reproduction — paper vs. this repo (FaceForensics++)
 FaceForensics++, **c23 (HQ) compression**, per-image scoring on 20 frames/video, threshold 0.5
@@ -101,7 +138,40 @@ Tuning only matters where precision/recall was imbalanced — MesoInception-4/De
 are honest val→test disagreement). The residual gap to the paper's headlines is therefore the
 per-image c23 protocol, not calibration.
 
+<details>
+<summary><b>Reproduction deep-dive figures</b> — ROC curves, calibration, threshold tuning, seed spread</summary>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_roc.dark.png">
+  <img alt="ROC curves for the four FaceForensics++ runs, all hugging the top-left corner with AUC between 0.97 and 0.99; the region below the diagonal is shaded and labeled worse than a coin flip" src="assets/fig_roc.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_calibration.dark.png">
+  <img alt="Reliability diagram: Meso-4 tracks the perfect-calibration diagonal while MesoInception-4 sits below it, overstating fake probability; vertical lines mark each model's validation-chosen threshold, 0.50 and 0.69" src="assets/fig_calibration.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_threshold_dumbbell.dark.png">
+  <img alt="Dumbbell chart of test accuracy at the default 0.5 threshold versus the validation-tuned threshold for each run; only MesoInception-4 on Deepfakes moves meaningfully, gaining about 1.8 points" src="assets/fig_threshold_dumbbell.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_seed_spread.dark.png">
+  <img alt="Per-seed accuracy and AUC for each model and method, shown as individual seed points with boxes; the paper's per-image Face2Face reference values are drawn as dashed segments" src="assets/fig_seed_spread.png">
+</picture>
+
+</details>
+
 ### Generalization — one FF++-trained model, evaluated across datasets
+
+> ⚠️ **Preliminary — multi-seed run in progress; figures and error bars will refresh on completion.**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/generalization_trafficlight.dark.svg">
+  <img alt="Traffic-light summary of generalization: green for in-domain FaceForensics++ Deepfakes, amber for the cross-method Face2Face control, red for the cross-dataset OpenForensics and 140k StyleGAN evaluations" src="assets/generalization_trafficlight.svg">
+</picture>
+
 _Not paper-comparable; the point is how performance shifts off the training distribution._
 Source model: `meso4_ff_deepfakes_best.pth` (FF++ Deepfakes, epoch 26), **weights frozen**,
 threshold 0.5 (untuned). AUC is the primary cross-dataset metric — accuracy loss can be partly
@@ -131,6 +201,31 @@ brittleness comes from single-domain training, not model capacity. Note that a d
 threshold cannot rescue an AUC below 0.5 (the ranking itself is inverted), so the cross-dataset
 numbers stand as-is — threshold tuning (T20) applies only in-domain.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_transfer_matrix.dark.png">
+  <img alt="Heatmap of cross-dataset AUC with training source as rows and evaluation dataset as columns: diagonal in-domain cells score 0.96 to 0.99, the cross-method cell 0.62, and cross-dataset cells 0.40 and below, colored on a diverging scale centered at the 0.5 chance level" src="assets/fig_transfer_matrix.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_score_dist.dark.png">
+  <img alt="Two stacked histograms of the model's predicted fake probability: on its own test set real and fake images form two well-separated spikes at 0 and 1; on the unseen 140k dataset both classes pile up together near 0, meaning almost everything is scored real" src="assets/fig_score_dist.png">
+</picture>
+
+<details>
+<summary><b>More generalization views</b> — capacity scatter, confusion matrices</summary>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_capacity_scatter.dark.png">
+  <img alt="Log-scale scatter of trainable parameters versus AUC: Meso-4 at 28 thousand parameters and Xception at 20.8 million both fall from near-perfect in-domain AUC to below the 0.5 coin-flip line on datasets they never saw" src="assets/fig_capacity_scatter.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_confusion.dark.png">
+  <img alt="Two annotated confusion matrices for Meso-4 at threshold 0.5: Deepfakes and Face2Face test sets, with counts and row percentages; mistakes concentrate in missed fakes on Face2Face" src="assets/fig_confusion.png">
+</picture>
+
+</details>
+
 ## Limitations / future work
 - **Single seed** (42) throughout — the Meso-4 vs MesoInception-4 ordering on Deepfakes sits
   within plausible seed variance; multi-seed runs would tighten every table.
@@ -145,12 +240,19 @@ numbers stand as-is — threshold tuning (T20) applies only in-domain.
 configs/default.yaml      all hyperparameters (nothing hardcoded)
 src/models/               Meso4, MesoInception4 (+ timm Xception baseline)
 src/data/                 dataset + transforms
-src/utils/                device (MPS-first), seed, config, metrics
+src/utils/                device (MPS-first), seed, config, metrics, plots
 src/train.py  src/eval.py entry points
-scripts/                  data download notes, FF++ face extraction
-tests/                    model smoke tests
+scripts/                  data download notes, FF++ extraction, threshold tuning,
+                          figure suite (figstyle, make_figures, build_summary)
+results/summary.json      every reported number, distilled (committed; figures build from it)
+assets/                   figures + diagrams (light/dark pairs)   docs/  dashboard, paper_diff
+tests/                    model + data + figure-infra tests
 TASKS.md                  build checklist
 ```
+
+## License
+MIT — see [LICENSE](LICENSE). MIT covers this repo's code; datasets keep their own terms, and
+no dataset imagery is redistributed here.
 
 ## Credits
 Method: Afchar et al., WIFS 2018 ([arXiv:1809.00888](https://arxiv.org/abs/1809.00888)),

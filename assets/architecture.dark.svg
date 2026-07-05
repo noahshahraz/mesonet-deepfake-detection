@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 340" font-family="'Segoe UI',Roboto,system-ui,-apple-system,sans-serif">
+  <rect width="1180" height="340" rx="16" fill="#0d1117"/>
+  <rect x="1" y="1" width="1178" height="338" rx="15" fill="none" stroke="#30363d" stroke-width="2"/>
+  <text x="40" y="50" font-size="26" font-weight="700" fill="#e6edf3">Meso-4 architecture</text>
+  <rect x="905" y="28" width="235" height="34" rx="17" fill="#0d2233" stroke="#1f6feb" stroke-width="1.5"/>
+  <text x="1022" y="50" font-size="15" font-weight="700" fill="#58a6ff" text-anchor="middle">only ~28,000 parameters</text>
+
+  <!-- input -->
+  <g transform="translate(0,110)">
+    <rect x="36" y="30" width="96" height="96" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+    <circle cx="84" cy="70" r="26" fill="none" stroke="#8b949e" stroke-width="2"/>
+    <circle cx="75" cy="66" r="3" fill="#8b949e"/><circle cx="93" cy="66" r="3" fill="#8b949e"/>
+    <path d="M73 80 q11 8 22 0" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"/>
+    <text x="84" y="150" font-size="13" fill="#8b949e" text-anchor="middle">256×256 face</text>
+
+    <path d="M140 78 L168 78" stroke="#8b949e" stroke-width="2.5" marker-end="url(#a)"/>
+
+    <!-- conv blocks -->
+    <g>
+      <rect x="176" y="34" width="86" height="88" rx="9" fill="#0f1f14" stroke="#2da44e" stroke-width="1.8"/>
+      <text x="219" y="66" font-size="14" font-weight="700" fill="#3fb950" text-anchor="middle">Conv</text>
+      <text x="219" y="86" font-size="12" fill="#8b949e" text-anchor="middle">8 filters</text>
+      <text x="219" y="103" font-size="11" fill="#8b949e" text-anchor="middle">↓ pool ½</text>
+    </g>
+    <path d="M266 78 L286 78" stroke="#8b949e" stroke-width="2.2" marker-end="url(#a)"/>
+    <g>
+      <rect x="294" y="34" width="86" height="88" rx="9" fill="#0f1f14" stroke="#2da44e" stroke-width="1.8"/>
+      <text x="337" y="66" font-size="14" font-weight="700" fill="#3fb950" text-anchor="middle">Conv</text>
+      <text x="337" y="86" font-size="12" fill="#8b949e" text-anchor="middle">8 filters</text>
+      <text x="337" y="103" font-size="11" fill="#8b949e" text-anchor="middle">↓ pool ½</text>
+    </g>
+    <path d="M384 78 L404 78" stroke="#8b949e" stroke-width="2.2" marker-end="url(#a)"/>
+    <g>
+      <rect x="412" y="34" width="86" height="88" rx="9" fill="#0f1f14" stroke="#2da44e" stroke-width="1.8"/>
+      <text x="455" y="66" font-size="14" font-weight="700" fill="#3fb950" text-anchor="middle">Conv</text>
+      <text x="455" y="86" font-size="12" fill="#8b949e" text-anchor="middle">16 filters</text>
+      <text x="455" y="103" font-size="11" fill="#8b949e" text-anchor="middle">↓ pool ½</text>
+    </g>
+    <path d="M502 78 L522 78" stroke="#8b949e" stroke-width="2.2" marker-end="url(#a)"/>
+    <g>
+      <rect x="530" y="34" width="86" height="88" rx="9" fill="#0f1f14" stroke="#2da44e" stroke-width="1.8"/>
+      <text x="573" y="66" font-size="14" font-weight="700" fill="#3fb950" text-anchor="middle">Conv</text>
+      <text x="573" y="86" font-size="12" fill="#8b949e" text-anchor="middle">16 filters</text>
+      <text x="573" y="103" font-size="11" fill="#8b949e" text-anchor="middle">↓ pool ¼</text>
+    </g>
+
+    <path d="M620 78 L648 78" stroke="#8b949e" stroke-width="2.5" marker-end="url(#a)"/>
+
+    <!-- dense head -->
+    <rect x="656" y="34" width="150" height="88" rx="9" fill="#272215" stroke="#bf8700" stroke-width="1.8"/>
+    <text x="731" y="62" font-size="14" font-weight="700" fill="#d29922" text-anchor="middle">Dense head</text>
+    <text x="731" y="83" font-size="12" fill="#8b949e" text-anchor="middle">16 → 1 unit</text>
+    <text x="731" y="102" font-size="11" fill="#8b949e" text-anchor="middle">+ dropout</text>
+
+    <path d="M810 78 L838 78" stroke="#8b949e" stroke-width="2.5" marker-end="url(#a)"/>
+
+    <!-- output -->
+    <rect x="846" y="46" width="150" height="64" rx="10" fill="#0d2233" stroke="#1f6feb" stroke-width="2"/>
+    <text x="921" y="76" font-size="15" font-weight="700" fill="#58a6ff" text-anchor="middle">P(fake)</text>
+    <text x="921" y="96" font-size="12" fill="#8b949e" text-anchor="middle">0 – 1</text>
+
+    <!-- caption -->
+    <text x="600" y="182" font-size="14" fill="#8b949e" text-anchor="middle">Each block: convolution → activation → normalization → shrink. "Mesoscopic" = it looks at mid-scale texture, where forgery traces survive video compression.</text>
+  </g>
+
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 L9 4.5 L0 9 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+</svg>

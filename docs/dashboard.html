@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MesoNet reproduction — results dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+  :root { --bg:#ffffff; --fg:#1f2328; --grid:#d0d7de; --muted:#57606a; --accent-bg:#f6f8fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1117; --fg:#e6edf3; --grid:#30363d; --muted:#8b949e; --accent-bg:#161b22; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0 auto; padding:24px 20px 8px; max-width:960px; background:var(--bg); color:var(--fg);
+         font:15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color:#0072B2; }
+  h1 { font-size:1.45rem; margin:0 0 4px; }
+  h2 { font-size:1.12rem; margin:0 0 2px; }
+  .sub, .muted { color:var(--muted); font-size:0.9rem; margin:0 0 10px; }
+  header { border-bottom:1px solid var(--grid); padding-bottom:14px; margin-bottom:8px; }
+  section { border-bottom:1px solid var(--grid); padding:20px 0 8px; }
+  .controls { display:flex; gap:18px; flex-wrap:wrap; margin:6px 0 4px; }
+  .controls label { font-size:0.88rem; color:var(--muted); }
+  select { margin-left:6px; padding:4px 8px; font:inherit; font-size:0.88rem;
+           color:var(--fg); background:var(--accent-bg); border:1px solid var(--grid); border-radius:6px; }
+  footer { color:var(--muted); font-size:0.82rem; padding:14px 0 20px; }
+  .chart { min-height:420px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MesoNet — Deepfake Detection (reproduction)</h1>
+  <p class="sub"><strong>Finding:</strong> the paper's FaceForensics++ accuracy reproduces to within a few
+  points, but the same trained weights collapse to chance-level AUC (&approx;0.3&ndash;0.4) on unseen
+  datasets. &nbsp;<a href="../README.md">Back to the README</a></p>
+</header>
+
+<section>
+  <h2>Same weights, different data: performance collapses off the training set</h2>
+  <p class="sub">One model, trained only on FF++ Deepfakes, evaluated unchanged on four test sets.
+  Pick a model and metric; hover a bar for exact and per-seed values. Multi-seed means show error
+  bars when more than one seed is present.</p>
+  <div class="controls">
+    <label>Model
+      <select id="model-select">
+        <option value="meso4">Meso-4 (multi-seed where available)</option>
+        <option value="xception">Xception (single seed)</option>
+      </select></label>
+    <label>Metric
+      <select id="metric-select">
+        <option value="acc">Accuracy</option>
+        <option value="auc">AUC</option>
+      </select></label>
+  </div>
+  <div id="gen-chart" class="chart"></div>
+</section>
+
+<section>
+  <h2>The paper's FaceForensics++ results reproduce within a few points</h2>
+  <p class="sub">Per-image accuracy at c23 (HQ) compression, threshold 0.5. Dashed reference lines are
+  the paper's per-video headline numbers on lighter compression, so landing a few points under them is
+  expected. Hover a bar for AUC and per-seed values.</p>
+  <div id="repro-chart" class="chart"></div>
+</section>
+
+<footer>Data generated from <code>results/summary.json</code> (committed; rebuild with
+<code>scripts/build_summary.py</code>). Colors: Okabe-Ito colorblind-safe palette; models are also
+distinguished by hatching and direct value labels, never by color alone.</footer>
+
+<script>
+"use strict";
+const SUMMARY = {"seeds":[42,1,2],"params":{"meso4":27977,"meso_inception4":28615,"xception":20809001},"paper":{"headline_video_level":{"deepfakes":0.98,"face2face":0.95},"video_level":{"deepfakes_their_dataset":0.984,"face2face_c23":0.953},"per_image_c23_face2face":{"meso4":0.924,"meso_inception4":0.934},"params":{"meso4":27977,"meso_inception4":28615}},"chance_auc":0.5,"reproduction":{"meso4:ff_deepfakes":{"acc":{"per_seed":{"42":0.9341,"1":0.9186},"mean":0.9263,"std":0.011,"n":2},"auc":{"per_seed":{"42":0.9849,"1":0.9836},"mean":0.9842,"std":0.0009,"n":2}},"meso4:ff_face2face":{"acc":{"per_seed":{"42":0.9154},"mean":0.9154,"std":0.0,"n":1},"auc":{"per_seed":{"42":0.9676},"mean":0.9676,"std":0.0,"n":1}},"meso_inception4:ff_deepfakes":{"acc":{"per_seed":{"42":0.9098,"1":0.9143},"mean":0.9121,"std":0.0032,"n":2},"auc":{"per_seed":{"42":0.9815,"1":0.9796},"mean":0.9806,"std":0.0014,"n":2}},"meso_inception4:ff_face2face":{"acc":{"per_seed":{"42":0.9227},"mean":0.9227,"std":0.0,"n":1},"auc":{"per_seed":{"42":0.9703},"mean":0.9703,"std":0.0,"n":1}}},"generalization":{"meso4":{"train":"ff_deepfakes","evals":{"ff_deepfakes":{"acc":{"per_seed":{"42":0.9341,"1":0.9186},"mean":0.9263,"std":0.011,"n":2},"auc":{"per_seed":{"42":0.9849,"1":0.9836},"mean":0.9842,"std":0.0009,"n":2}},"ff_face2face":{"acc":{"per_seed":{"42":0.5425},"mean":0.5425,"std":0.0,"n":1},"auc":{"per_seed":{"42":0.6208},"mean":0.6208,"std":0.0,"n":1}},"openforensics":{"acc":{"per_seed":{"42":0.467},"mean":0.467,"std":0.0,"n":1},"auc":{"per_seed":{"42":0.4049},"mean":0.4049,"std":0.0,"n":1}},"faces140k":{"acc":{"per_seed":{"42":0.4981},"mean":0.4981,"std":0.0,"n":1},"auc":{"per_seed":{"42":0.4032},"mean":0.4032,"std":0.0,"n":1}}}},"xception":{"train":"ff_deepfakes","seeds":[42],"evals":{"ff_deepfakes":{"acc":0.9764,"auc":0.9968},"ff_face2face":{"acc":0.5188,"auc":0.7177},"openforensics":{"acc":0.4775,"auc":0.2946},"faces140k":{"acc":0.4991,"auc":0.3344}}}},"transfer_matrix_auc_seed42":{"ff_deepfakes":{"ff_deepfakes":0.9849,"ff_face2face":0.6208,"openforensics":0.4049,"faces140k":0.4032},"ff_face2face":{"ff_face2face":0.9676},"openforensics":{"ff_deepfakes":0.5004,"openforensics":0.9567}},"threshold":[{"model":"meso4","dataset":"ff_deepfakes","threshold":0.5,"test_acc_05":0.9341071428571428,"test_acc_tuned":0.9341071428571428,"test_f1_05":0.9343065693430657,"test_f1_tuned":0.9343065693430657},{"model":"meso_inception4","dataset":"ff_deepfakes","threshold":0.6900000000000001,"test_acc_05":0.9098214285714286,"test_acc_tuned":0.9276785714285715,"test_f1_05":0.914071805342862,"test_f1_tuned":0.927484333034915},{"model":"meso4","dataset":"ff_face2face","threshold":0.53,"test_acc_05":0.9153571428571429,"test_acc_tuned":0.9128571428571428,"test_f1_05":0.9119286510590858,"test_f1_tuned":0.9088191330343797},{"model":"meso_inception4","dataset":"ff_face2face","threshold":0.66,"test_acc_05":0.9226785714285715,"test_acc_tuned":0.9217857142857143,"test_f1_05":0.9221363064197087,"test_f1_tuned":0.919008875739645}],"per_video":null,"baseline_openforensics":{"meso4":{"accuracy":0.8743,"auc":0.9567,"precision":0.9006,"recall":0.8434,"f1":0.8711},"meso_inception4":{"accuracy":0.8714,"auc":0.9519,"precision":0.882,"recall":0.8598,"f1":0.8707}},"reverse_control_auc":{"openforensics_to_ff_deepfakes":[0.4592,0.5004]},"probs_stems":{"in_domain":"meso4_train-ff_deepfakes_eval-ff_deepfakes","cross_140k":"meso4_train-ff_deepfakes_eval-faces140k","cross_openforensics":"meso4_train-ff_deepfakes_eval-openforensics","repro_runs":{"meso4:ff_deepfakes":"meso4_train-ff_deepfakes_eval-ff_deepfakes","meso4:ff_face2face":"meso4_train-ff_face2face_eval-ff_face2face","meso_inception4:ff_deepfakes":"meso_inception4_train-ff_deepfakes_eval-ff_deepfakes","meso_inception4:ff_face2face":"meso_inception4_train-ff_face2face_eval-ff_face2face"}}};
+
+// Fixed identity palette (matches scripts/figstyle.py CYCLE).
+const C = { meso4:"#0072B2", meso_inception4:"#E69F00", xception:"#009E73", paper:"#D55E00" };
+const DATASETS = [
+  ["ff_deepfakes",  "FF++ Deepfakes (in-domain)"],
+  ["ff_face2face",  "FF++ Face2Face (cross-method)"],
+  ["openforensics", "OpenForensics"],
+  ["faces140k",     "140k (StyleGAN)"]
+];
+const mq = window.matchMedia("(prefers-color-scheme: dark)");
+const CFG = { displayModeBar:false, responsive:true };
+const fmt = v => (v == null || Number.isNaN(Number(v))) ? "n/a" : Number(v).toFixed(3);
+
+function theme() {
+  return mq.matches
+    ? { bg:"#0d1117", fg:"#e6edf3", grid:"#30363d", muted:"#8b949e" }
+    : { bg:"#ffffff", fg:"#1f2328", grid:"#d0d7de", muted:"#57606a" };
+}
+function baseLayout(th, yTitle, xTitle) {
+  return {
+    paper_bgcolor: th.bg, plot_bgcolor: th.bg, height: 420,
+    font: { color: th.fg, family: "system-ui, -apple-system, sans-serif", size: 13 },
+    margin: { l:70, r:20, t:10, b:70 }, bargap: 0.35, showlegend: false,
+    yaxis: { title:{ text:yTitle }, range:[0, 1.08], gridcolor: th.grid, zeroline:false },
+    xaxis: { title:{ text:xTitle }, showgrid:false },
+    hoverlabel: { bgcolor: th.bg, bordercolor: th.muted, font:{ color: th.fg } }
+  };
+}
+// Metric values appear either as {per_seed, mean, std, n} (Meso-4) or a bare number (Xception).
+function norm(v) {
+  if (v == null) return null;
+  if (typeof v === "number") return { mean:v, std:0, n:1, perSeed:null };
+  return { mean:v.mean, std:v.std || 0, n:v.n || 1, perSeed:v.per_seed || null };
+}
+function seedLines(m, fallback) {
+  if (m.perSeed) return Object.entries(m.perSeed).map(([s, v]) => "seed " + s + ": " + fmt(v)).join("<br>");
+  return fallback || "";
+}
+function note(el, msg) {
+  el.innerHTML = '<p class="muted">' + msg + " (regenerate results/summary.json)</p>";
+}
+
+function drawGen() {
+  const el = document.getElementById("gen-chart");
+  const model = document.getElementById("model-select").value;
+  const metric = document.getElementById("metric-select").value;
+  const gen = SUMMARY && SUMMARY.generalization;
+  if (!gen || !gen[model] || !gen[model].evals) { note(el, "generalization data not available for this model"); return; }
+  const evals = gen[model].evals, th = theme();
+  const labels = [], means = [], errs = [], hover = [];
+  for (const [key, label] of DATASETS) {
+    const m = norm(evals[key] ? evals[key][metric] : null);
+    labels.push(label);
+    if (!m) { means.push(null); errs.push(0); hover.push("not evaluated"); continue; }
+    means.push(m.mean);
+    errs.push(m.n > 1 ? m.std : 0);
+    let h = (metric === "acc" ? "Accuracy" : "AUC") + ": <b>" + fmt(m.mean) + "</b>";
+    if (m.n > 1) h += " ± " + fmt(m.std) + " (n=" + m.n + ")";
+    const seeds = seedLines(m, model === "xception" ? "single seed (42)" : "");
+    hover.push(seeds ? h + "<br>" + seeds : h);
+  }
+  const modelName = model === "meso4" ? "Meso-4" : "Xception";
+  const trace = {
+    type:"bar", x: labels, y: means, cliponaxis:false,
+    marker: { color: C[model] || C.meso4, line:{ color: th.fg, width:0.5 } },
+    text: means.map(fmt), textposition:"outside", textfont:{ color: th.fg },
+    customdata: hover,
+    hovertemplate: "<b>" + modelName + "</b> — %{x}<br>%{customdata}<extra></extra>",
+    error_y: { type:"data", array: errs, visible: errs.some(e => e > 0), color: th.fg }
+  };
+  const layout = baseLayout(th,
+    metric === "acc" ? "Accuracy on held-out test images" : "AUC (ranking quality; 0.5 = chance)",
+    "Evaluation dataset — same weights, trained on FF++ Deepfakes only");
+  const chance = (SUMMARY && SUMMARY.chance_auc) || 0.5;
+  layout.shapes = [{ type:"line", xref:"paper", x0:0, x1:1, y0:chance, y1:chance,
+                     line:{ color: th.muted, width:1.5, dash:"dot" } }];
+  layout.annotations = [{ xref:"paper", x:1, y:chance, xanchor:"right", yanchor:"bottom",
+                          text:"chance ≈ " + chance, showarrow:false, font:{ color: th.muted, size:11 } }];
+  Plotly.react(el, [trace], layout, CFG);
+}
+
+function drawRepro() {
+  const el = document.getElementById("repro-chart");
+  const rep = SUMMARY && SUMMARY.reproduction;
+  if (!rep) { note(el, "reproduction data not available"); return; }
+  const th = theme();
+  const methods = [["ff_deepfakes", "Deepfakes"], ["ff_face2face", "Face2Face"]];
+  const models = [["meso4", "Meso-4"], ["meso_inception4", "MesoInception-4"]];
+  const traces = models.map(([mk, mname], i) => {
+    const y = [], hover = [];
+    for (const [dk] of methods) {
+      const run = rep[mk + ":" + dk];
+      const acc = norm(run ? run.acc : null), auc = norm(run ? run.auc : null);
+      y.push(acc ? acc.mean : null);
+      const bits = ["Accuracy: <b>" + (acc ? fmt(acc.mean) : "n/a") + "</b>",
+                    "AUC: " + (auc ? fmt(auc.mean) : "n/a")];
+      if (acc && acc.perSeed) bits.push("per-seed acc — " + seedLines(acc));
+      hover.push(bits.join("<br>"));
+    }
+    return { type:"bar", name: mname, x: methods.map(m => m[1]), y: y, cliponaxis:false,
+      marker: { color: C[mk], pattern: { shape: (i === 0 ? "" : "/"), fgcolor: th.bg, solidity: 0.25 } },
+      text: y.map(fmt), textposition:"outside", textfont:{ color: th.fg },
+      customdata: hover,
+      hovertemplate: "<b>" + mname + "</b> — %{x}<br>%{customdata}<extra></extra>" };
+  });
+  const layout = baseLayout(th, "Accuracy on held-out test images (per-image, c23)",
+                            "Forgery method (FaceForensics++)");
+  layout.barmode = "group";
+  layout.showlegend = true;
+  layout.legend = { orientation:"h", y:1.1, font:{ color: th.fg } };
+  const paper = SUMMARY.paper && SUMMARY.paper.headline_video_level;
+  if (paper && paper.deepfakes != null && paper.face2face != null) {
+    layout.shapes = [
+      { type:"line", xref:"x", x0:-0.42, x1:0.42, y0:paper.deepfakes, y1:paper.deepfakes,
+        line:{ color: C.paper, width:2, dash:"dash" } },
+      { type:"line", xref:"x", x0:0.58, x1:1.42, y0:paper.face2face, y1:paper.face2face,
+        line:{ color: C.paper, width:2, dash:"dash" } }
+    ];
+    traces.push({ type:"scatter", mode:"lines", x:[null], y:[null], hoverinfo:"skip",
+      name:"Paper headline (~" + paper.deepfakes + " / ~" + paper.face2face + ", per-video)",
+      line:{ color: C.paper, dash:"dash", width:2 } });
+  }
+  Plotly.react(el, traces, layout, CFG);
+}
+
+function drawAll() { drawGen(); drawRepro(); }
+document.getElementById("model-select").addEventListener("change", drawGen);
+document.getElementById("metric-select").addEventListener("change", drawGen);
+if (mq.addEventListener) { mq.addEventListener("change", drawAll); } else { mq.addListener(drawAll); }
+drawAll();
+</script>
+</body>
+</html>

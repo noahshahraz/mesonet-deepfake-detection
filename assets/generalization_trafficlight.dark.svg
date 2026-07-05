@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 430" font-family="'Segoe UI',Roboto,system-ui,-apple-system,sans-serif">
+  <rect width="1180" height="430" rx="16" fill="#0d1117"/>
+  <rect x="1" y="1" width="1178" height="428" rx="15" fill="none" stroke="#30363d" stroke-width="2"/>
+  <text x="40" y="50" font-size="26" font-weight="700" fill="#e6edf3">The catch: great on what it learned, blind to new kinds of fakes</text>
+  <text x="40" y="80" font-size="16" fill="#8b949e">One detector, trained once on Deepfakes, then shown three kinds of test images. (Score = AUC; 1.0 perfect, 0.5 = coin flip.)</text>
+
+  <!-- trained badge -->
+  <g transform="translate(40,110)">
+    <rect x="0" y="0" width="250" height="86" rx="12" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+    <text x="125" y="36" font-size="16" font-weight="700" fill="#e6edf3" text-anchor="middle">Trained on</text>
+    <text x="125" y="62" font-size="16" font-weight="700" fill="#58a6ff" text-anchor="middle">FaceForensics++ Deepfakes</text>
+  </g>
+  <path d="M300 153 L360 153" stroke="#8b949e" stroke-width="3" marker-end="url(#g)"/>
+
+  <!-- three test panels -->
+  <g transform="translate(372,110)">
+    <!-- same fakes -->
+    <rect x="0" y="0" width="248" height="250" rx="12" fill="#0f1f14" stroke="#2da44e" stroke-width="2"/>
+    <circle cx="124" cy="52" r="24" fill="#2da44e"/>
+    <text x="124" y="59" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">✓</text>
+    <text x="124" y="104" font-size="16" font-weight="700" fill="#3fb950" text-anchor="middle">Same kind of fake</text>
+    <text x="124" y="128" font-size="13" fill="#8b949e" text-anchor="middle">(the ones it trained on)</text>
+    <text x="124" y="182" font-size="40" font-weight="800" fill="#3fb950" text-anchor="middle">0.98</text>
+    <text x="124" y="216" font-size="14" fill="#8b949e" text-anchor="middle">near-perfect</text>
+  </g>
+
+  <g transform="translate(636,110)">
+    <!-- different manipulation -->
+    <rect x="0" y="0" width="248" height="250" rx="12" fill="#272215" stroke="#bf8700" stroke-width="2"/>
+    <circle cx="124" cy="52" r="24" fill="#bf8700"/>
+    <text x="124" y="60" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">!</text>
+    <text x="124" y="104" font-size="16" font-weight="700" fill="#d29922" text-anchor="middle">Different manipulation</text>
+    <text x="124" y="128" font-size="13" fill="#8b949e" text-anchor="middle">(Face2Face reenactment)</text>
+    <text x="124" y="182" font-size="40" font-weight="800" fill="#d29922" text-anchor="middle">0.62</text>
+    <text x="124" y="216" font-size="14" fill="#8b949e" text-anchor="middle">weak, but some signal</text>
+  </g>
+
+  <g transform="translate(900,110)">
+    <!-- totally different dataset -->
+    <rect x="0" y="0" width="248" height="250" rx="12" fill="#210f10" stroke="#cf222e" stroke-width="2"/>
+    <circle cx="124" cy="52" r="24" fill="#cf222e"/>
+    <text x="124" y="60" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">✕</text>
+    <text x="124" y="104" font-size="16" font-weight="700" fill="#f85149" text-anchor="middle">Brand-new dataset</text>
+    <text x="124" y="128" font-size="13" fill="#8b949e" text-anchor="middle">(AI-generated faces)</text>
+    <text x="124" y="182" font-size="40" font-weight="800" fill="#f85149" text-anchor="middle">≈0.40</text>
+    <text x="124" y="216" font-size="14" fill="#8b949e" text-anchor="middle">no better than guessing</text>
+  </g>
+
+  <text x="40" y="404" font-size="15" fill="#e6edf3">Takeaway: the detector memorizes the fingerprints of one forgery style. Show it a new style and it's lost — and a model <tspan font-weight="700">750× larger</tspan> fails the same way.</text>
+
+  <defs>
+    <marker id="g" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+</svg>
