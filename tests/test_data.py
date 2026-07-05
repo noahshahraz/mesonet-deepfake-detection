@@ -3,7 +3,7 @@ import pytest
 import torch
 from PIL import Image
 
-from src.data import build_dataloaders, build_transforms
+from src.data import build_dataloaders, build_multi_dataloaders, build_transforms
 from src.utils.config import Config
 
 
@@ -117,3 +117,32 @@ def test_dataloaders_batch_shape(tmp_path):
     x, y = next(iter(train))
     assert x.shape == (4, 3, 64, 64)
     assert y.shape == (4,)
+
+
+# ------------------------------------------------------------- Task 7 multi-source union
+
+def test_multi_dataloaders_union_sizes_and_labels(tmp_path):
+    root_a, root_b = tmp_path / "a", tmp_path / "b"
+    _make_fake_dataset(root_a, counts={"train": 6, "val": 4, "test": 4})
+    _make_fake_dataset(root_b, counts={"train": 3, "val": 2, "test": 2})
+    cfg = _loader_cfg(root_a)  # cfg.data.root is ignored by the multi builder
+    train, val, test = build_multi_dataloaders(cfg, [root_a, root_b])
+    assert len(train.dataset) == (6 + 3) * 2
+    assert len(val.dataset) == (4 + 2) * 2
+    assert len(test.dataset) == (4 + 2) * 2
+    # label integrity end-to-end across BOTH roots: real is green -> 0, fake is red -> 1
+    for x, y in val:
+        red, green = x[:, 0].mean(dim=(1, 2)), x[:, 1].mean(dim=(1, 2))
+        assert torch.equal((red > green).long(), y)
+
+
+def test_multi_dataloaders_reject_bad_root(tmp_path):
+    good, bad = tmp_path / "good", tmp_path / "bad"
+    _make_fake_dataset(good)
+    for cls in ("cats", "dogs"):
+        d = bad / "train" / cls
+        d.mkdir(parents=True)
+        Image.new("RGB", (64, 64)).save(d / "0.jpg")
+    (bad / "val").mkdir(); (bad / "test").mkdir()
+    with pytest.raises(RuntimeError, match="real"):
+        build_multi_dataloaders(_loader_cfg(good), [good, bad])

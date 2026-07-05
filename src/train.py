@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from src.data import build_dataloaders
+from src.data import build_dataloaders, build_multi_dataloaders
 from src.models import build_model
 from src.utils import get_device, load_config, predict_probs, set_seed
 from src.utils.metrics import compute_metrics
@@ -29,6 +29,9 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--model", default=None, help="meso4 | meso_inception4")
     p.add_argument("--dataset", default=None, help="dataset name; sets data.root to data/<name>")
     p.add_argument("--data-root", default=None, help="explicit data root (overrides --dataset root)")
+    p.add_argument("--data-roots", default=None,
+                   help="comma-separated roots for multi-source training (Task 7); train/val/test "
+                        "become the union across roots")
     p.add_argument("--epochs", type=int, default=None)
     p.add_argument("--batch-size", type=int, default=None,
                    help="override train.batch_size (e.g. smaller for the Xception baseline)")
@@ -52,6 +55,11 @@ def apply_overrides(cfg, args: argparse.Namespace):
         cfg["data"]["root"] = f"data/{args.dataset}"
     if args.data_root:
         cfg["data"]["root"] = args.data_root
+    if args.data_roots:
+        # multi-source union (Task 7); dataset name defaults to the joined root basenames
+        if not args.dataset:
+            cfg["data"]["name"] = "+".join(
+                p.rstrip("/").rsplit("/", 1)[-1] for p in args.data_roots.split(","))
     if args.epochs is not None:
         cfg["train"]["epochs"] = args.epochs
     if args.batch_size is not None:
@@ -101,9 +109,15 @@ def main() -> None:
     log_path = Path(cfg.train.log_dir) / f"{run_name}.jsonl"
     guard_overwrite([ckpt_path, log_path], args.overwrite)
 
-    train_loader, val_loader, test_loader = build_dataloaders(cfg)
+    if args.data_roots:
+        roots = [r.strip() for r in args.data_roots.split(",") if r.strip()]
+        train_loader, val_loader, test_loader = build_multi_dataloaders(cfg, roots)
+        source_desc = " + ".join(roots)
+    else:
+        train_loader, val_loader, test_loader = build_dataloaders(cfg)
+        source_desc = cfg.data.root
     print(
-        f"[train] dataset = {cfg.data.name} @ {cfg.data.root} | "
+        f"[train] dataset = {cfg.data.name} @ {source_desc} | "
         f"train/val/test = {len(train_loader.dataset)}/{len(val_loader.dataset)}"
         f"/{len(test_loader.dataset)}"
     )

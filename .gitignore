@@ -1,8 +1,9 @@
-# Heavy folders — never commit
-data/
-checkpoints/
-runs/
-outputs/
+# Heavy folders — never commit. Anchored to the repo root: an unanchored `data/`
+# also swallows src/data/, which is real source code.
+/data/
+/checkpoints/
+/runs/
+/outputs/
 *.pth
 *.pt
 *.ckpt
