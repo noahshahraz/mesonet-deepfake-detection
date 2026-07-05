@@ -18,7 +18,7 @@ were cross-checked by exact parameter-count match (see below).
 | Augmentation | Zoom, rotation, horizontal flip, brightness **and hue** changes (magnitudes unspecified) | Flip, rotation 15°, zoom ±0.1, brightness ±0.1 — **no hue jitter** | Magnitudes are unspecified in the paper; hue omitted (face hue is a plausible forgery cue we chose not to perturb) |
 | Face extraction | Viola-Jones detector + NN landmark **alignment**, ~50 faces/scene, **manually reviewed** | MTCNN largest-face, margin 0.3, square crop, 20 frames/video, no alignment, no manual review | MTCNN is stronger than Viola-Jones (3/60,000 misses); no alignment step — BN + augmentation compensate; manual review impractical for a reproduction |
 | Training data | Their own Deepfake set (5,111 forged / 7,250 real crops) + FF++ Face2Face (300 videos, 4,500/4,500) | FF++ c23 only, official 720/140/140 identity splits → ~14.4k/class train per method | Authors' dataset is not distributed; FF++ is the reproducible benchmark |
-| Evaluation | Per-image **and** per-video (prediction averaged over video); headline 98.4%/95.3% are **per-video** | Per-image only (threshold 0.5) | Per-image is the stricter, simpler protocol; paper's own per-image c23 Face2Face is 92.4%/93.4% — our 91.5%/92.3% is ~1 pt off |
+| Evaluation | Per-image **and** per-video (prediction averaged over video); headline 98.4%/95.3% are **per-video** | Both, since hardening task 3: per-image plus per-video via `scripts/eval_per_video.py` (mean P(fake) over 20 frames/video) | **Resolved.** Per-video Face2Face = 0.950–0.951 vs the paper's 95.3% (match, same c23 compression, 3 seeds); per-video Deepfakes = 0.950–0.955 vs their 98.4% on the authors' unreleased lighter-compression set |
 | Framework | Keras/TensorFlow | PyTorch 2.12 | See framework-defaults notes below |
 | Device | GPU (CUDA implied) | Apple **MPS** (`src.utils.get_device`) | Target hardware |
 
@@ -51,8 +51,9 @@ were cross-checked by exact parameter-count match (see below).
   (720 train videos × 20 frames × 2 classes)
 
 ## Evaluation / results
-- [x] Metrics are per-image accuracy (+ AUC/P/R/F1, which the paper does not report); the paper's
-  headline numbers aggregate per video — ours do not (candidate future work)
+- [x] Metrics: per-image accuracy (+ AUC/P/R/F1, which the paper does not report) AND, since
+  hardening task 3, per-video aggregation matching the paper's protocol — Face2Face lands on the
+  paper's 95.3% within noise (0.950–0.951, 3 seeds)
 - [x] Reproduced FF++ c23 per-image accuracy: Meso-4 93.4% (DF) / 91.5% (F2F);
   MesoInception-4 91.0% (DF) / 92.3% (F2F). Paper per-image c23 Face2Face: 92.4% / 93.4%;
   paper per-video headlines: 98.4% (DF, their dataset) / 95.3% (F2F c23).

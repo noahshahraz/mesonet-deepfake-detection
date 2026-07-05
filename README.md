@@ -119,24 +119,47 @@ FaceForensics++, **c23 (HQ) compression**, per-image scoring on 20 frames/video,
 lighter-compression dataset with per-video frame aggregation, so per-image c23 numbers landing a
 few points lower is **expected, not a defect**.
 
+All "Mine" cells are **mean ± std across three training seeds** (42, 1, 2).
+
 | Model | Method | Paper acc.* | Mine acc. (c23) | Mine acc. (tuned t†) | Mine AUC |
 |---|---|---|---|---|---|
-| Meso-4 | Deepfakes | ~0.98 | 0.934 | 0.934 (t=0.50) | 0.985 |
-| MesoInception-4 | Deepfakes | ~0.98 | 0.910 | 0.928 (t=0.69) | 0.982 |
-| Meso-4 | Face2Face | ~0.95 | 0.915 | 0.913 (t=0.53) | 0.968 |
-| MesoInception-4 | Face2Face | ~0.95 | 0.923 | 0.922 (t=0.66) | 0.970 |
+| Meso-4 | Deepfakes | ~0.98 | 0.925 ± 0.008 | 0.930 ± 0.004 | 0.983 ± 0.002 |
+| MesoInception-4 | Deepfakes | ~0.98 | 0.913 ± 0.002 | 0.930 ± 0.009 | 0.983 ± 0.004 |
+| Meso-4 | Face2Face | ~0.95 | 0.920 ± 0.007 | 0.919 ± 0.007 | 0.972 ± 0.004 |
+| MesoInception-4 | Face2Face | ~0.95 | 0.924 ± 0.004 | 0.923 ± 0.004 | 0.972 ± 0.002 |
 
-*Two consistency checks hold: Deepfakes scores above Face2Face (the paper's difficulty ordering),
-and AUCs of 0.97–0.985 sit right under the paper's ~0.99. Honestly noted: Meso-4 slightly
-outperforms MesoInception-4 on Deepfakes here (single-seed variance territory). For a like-for-like
-anchor, the paper's own *per-image* c23 Face2Face accuracies are 92.4%/93.4% — within ~1 pt of ours;
-the 95–98% headlines are per-video aggregates.
+*Consistency with the paper: the Deepfakes-easier-than-Face2Face ordering holds cleanly on AUC
+(0.983 vs 0.972, non-overlapping across seeds); on raw accuracy it is within seed noise. The
+multi-seed runs also settle an earlier question: at threshold 0.5, Meso-4 beats MesoInception-4
+on Deepfakes on **every** seed (+0.4 to +2.4 pts) — but their AUCs are identical and their
+val-tuned accuracies converge to the same 0.930, so the gap is **calibration, not ranking
+quality**. For a like-for-like anchor, the paper's own *per-image* c23 Face2Face accuracies are
+92.4%/93.4% — right in line with ours; the 95–98% headlines are per-video aggregates.
 
-†Threshold selected on the **validation** split (`scripts/tune_threshold.py`, T20), never on test.
-Tuning only matters where precision/recall was imbalanced — MesoInception-4/Deepfakes gains
-+1.8 pts at t=0.69; the other three runs were already calibrated at 0.5 (the tiny negative deltas
-are honest val→test disagreement). The residual gap to the paper's headlines is therefore the
-per-image c23 protocol, not calibration.
+†Threshold selected per seed on the **validation** split (`scripts/tune_threshold.py`), never on
+test (seed-42 values: 0.50 / 0.69 / 0.53 / 0.66). Tuning matters exactly where calibration was
+off — MesoInception-4/Deepfakes — and is a no-op elsewhere. The residual gap to the paper's
+headlines is therefore the per-image c23 protocol, not calibration (see per-video results below).
+
+### Per-video scoring — the paper's actual protocol
+The paper's 95–98% headlines average each network's prediction over the video before deciding.
+Applying the same aggregation (mean P(fake) over the 20 sampled frames per video, threshold 0.5;
+`scripts/eval_per_video.py`) to the identical checkpoints, on 280 test videos per method,
+mean ± std across the three seeds:
+
+| Model | Method | Per-image acc. | **Per-video acc.** | Per-video AUC |
+|---|---|---|---|---|
+| Meso-4 | Deepfakes | 0.925 | **0.955 ± 0.017** | 0.994 ± 0.002 |
+| MesoInception-4 | Deepfakes | 0.913 | **0.950 ± 0.009** | 0.995 ± 0.003 |
+| Meso-4 | Face2Face | 0.920 | **0.950 ± 0.011** | 0.984 ± 0.003 |
+| MesoInception-4 | Face2Face | 0.924 | **0.951 ± 0.007** | 0.985 ± 0.001 |
+
+Video-level aggregation adds ~3 points across the board, and **Face2Face lands on the paper's
+number**: 0.950–0.951 vs the paper's 95.3% at the same compression — a match within noise, under
+the paper's own protocol. Deepfakes reaches 0.950–0.955 vs the ~98% headline; that remaining gap
+is the one comparison we cannot make like-for-like (the paper's Deepfake figure comes from its
+authors' own unreleased, lighter-compression dataset). Per-video AUCs of 0.984–0.995 sit at the
+paper's reported ~0.99.
 
 <details>
 <summary><b>Reproduction deep-dive figures</b> — ROC curves, calibration, threshold tuning, seed spread</summary>
@@ -173,23 +196,26 @@ per-image c23 protocol, not calibration.
 </picture>
 
 _Not paper-comparable; the point is how performance shifts off the training distribution._
-Source model: `meso4_ff_deepfakes_best.pth` (FF++ Deepfakes, epoch 26), **weights frozen**,
-threshold 0.5 (untuned). AUC is the primary cross-dataset metric — accuracy loss can be partly
-threshold miscalibration, an AUC drop is true generalization loss.
+Source models: the three seeded `meso4_ff_deepfakes` checkpoints, **weights frozen**, threshold
+0.5 (untuned); Meso-4 cells are mean ± std across seeds, Xception is a single seed (42). AUC is
+the primary cross-dataset metric — accuracy loss can be partly threshold miscalibration, an AUC
+drop is true generalization loss.
 
 | Eval dataset | Meso-4 acc. | Meso-4 AUC | Xception acc. | Xception AUC |
 |---|---|---|---|---|
-| FF++ Deepfakes (in-domain reference) | 0.934 | 0.985 | 0.976 | 0.997 |
-| FF++ Face2Face (cross-method control) | 0.543 | 0.621 | 0.519 | 0.718 |
-| OpenForensics | 0.467 | 0.405 | 0.477 | 0.295 |
-| 140k (StyleGAN) | 0.498 | 0.403 | 0.499 | 0.334 |
+| FF++ Deepfakes (in-domain reference) | 0.925 ± 0.008 | 0.983 ± 0.002 | 0.976 | 0.997 |
+| FF++ Face2Face (cross-method control) | 0.546 ± 0.015 | 0.621 ± 0.011 | 0.519 | 0.718 |
+| OpenForensics | 0.468 ± 0.017 | 0.408 ± 0.015 | 0.477 | 0.295 |
+| 140k (StyleGAN) | 0.497 ± 0.001 | 0.408 ± 0.008 | 0.499 | 0.334 |
 
 **Generalization findings.** Neither model transfers across datasets. Cross-*method* transfer
-inside the same preprocessing domain retains usable signal (Meso-4 AUC 0.62; Xception 0.72), but
-cross-*dataset* the signal is essentially lost: Meso-4's AUC ≈ 0.40 on both external sets is a
-**mild ranking inversion** — a faint anti-correlation, not a reliable inverted classifier — and
-transfer fails in the reverse direction too (OpenForensics→FF++ sits at chance: AUC 0.46–0.50
-across two same-seed training runs). The
+inside the same preprocessing domain retains usable signal (Meso-4 AUC 0.62 ± 0.01; Xception
+0.72), but cross-*dataset* the signal is essentially lost: Meso-4's AUC of 0.408 ± 0.015
+(OpenForensics) and 0.408 ± 0.008 (140k) is a **mild but consistent ranking inversion** — every
+one of the six seed × dataset evaluations lands between 0.395 and 0.425, below chance on all
+three seeds, a faint anti-correlation rather than a reliable inverted classifier — and transfer
+fails in the reverse direction too (OpenForensics→FF++ sits at chance: AUC 0.46–0.50 across two
+same-seed training runs). The
 mechanism is consistent with low-level cue mismatch: the mesoscopic compression/resampling
 artifacts learned on c23 video frames point the wrong way elsewhere — on 140k the model flags
 6/10,000 fakes, plausibly because StyleGAN fakes look *smoother* to a compression-artifact
@@ -227,10 +253,11 @@ numbers stand as-is — threshold tuning (T20) applies only in-domain.
 </details>
 
 ## Limitations / future work
-- **Single seed** (42) throughout — the Meso-4 vs MesoInception-4 ordering on Deepfakes sits
-  within plausible seed variance; multi-seed runs would tighten every table.
-- **Per-image evaluation only.** The paper's 98%/95% headlines average predictions per video;
-  adding per-video aggregation is the most likely single step toward closing the residual gap.
+- **Three seeds** (42, 1, 2) for the FF++ reproduction and Meso-4 generalization numbers;
+  Xception and the OpenForensics baseline remain single-seed. The spread is small (±0.2–0.9 pts
+  accuracy, ±0.002–0.015 AUC) and changes no conclusion; the one question seeds settled is that
+  Meso-4's Deepfakes edge over MesoInception-4 at threshold 0.5 is a **calibration** difference
+  (identical AUCs; tuned accuracies converge).
 - **Loss deviation:** the paper trains squared error on a sigmoid; we use `BCEWithLogitsLoss`
   (see [`docs/paper_diff.md`](docs/paper_diff.md) for this and every other difference, incl. the
   paper's step lr schedule and hue augmentation that we omit).
