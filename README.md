@@ -8,8 +8,8 @@
 [![Live dashboard](https://img.shields.io/badge/%E2%96%B6%20Live-dashboard-0072B2)](https://noahshahraz.github.io/mesonet-deepfake-detection/dashboard.html)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/hero_concept.svg">
-  <img alt="Hero banner: MesoNet deepfake detection reproduced — two compact CNNs spot face forgeries at the mesoscopic scale; reproduced on FaceForensics++, stress-tested across datasets" src="assets/hero_concept.light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero_concept.svg?v=2">
+  <img alt="Hero banner: MesoNet deepfake detection reproduced — two compact CNNs spot face forgeries at the mesoscopic scale; reproduced on FaceForensics++, stress-tested across datasets" src="assets/hero_concept.light.svg?v=2">
 </picture>
 
 A from-scratch PyTorch reproduction of **MesoNet** (Afchar, Nozick, Yamagishi & Echizen,
