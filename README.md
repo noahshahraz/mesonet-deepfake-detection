@@ -3,7 +3,7 @@
 ![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![PyTorch 2.12](https://img.shields.io/badge/PyTorch-2.12-EE4C2C?logo=pytorch&logoColor=white)
 ![Apple Silicon MPS](https://img.shields.io/badge/Apple%20Silicon-MPS-000000?logo=apple&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-15%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Live dashboard](https://img.shields.io/badge/%E2%96%B6%20Live-dashboard-0072B2)](https://noahshahraz.github.io/mesonet-deepfake-detection/dashboard.html)
 
@@ -86,8 +86,6 @@ python -m src.eval  --config configs/default.yaml --data-root ~/mesonet-data/ope
 ```
 
 ## Results
-
-> ⚠️ **Preliminary — multi-seed run in progress; figures and error bars will refresh on completion.**
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/fig01_overview.dark.png">
@@ -187,8 +185,6 @@ paper's reported ~0.99.
 </details>
 
 ### Generalization — one FF++-trained model, evaluated across datasets
-
-> ⚠️ **Preliminary — multi-seed run in progress; figures and error bars will refresh on completion.**
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/generalization_trafficlight.dark.svg">

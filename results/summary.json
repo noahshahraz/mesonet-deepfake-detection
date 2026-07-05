@@ -1,0 +1,553 @@
+{
+  "seeds": [
+    42,
+    1,
+    2
+  ],
+  "params": {
+    "meso4": 27977,
+    "meso_inception4": 28615,
+    "xception": 20809001
+  },
+  "paper": {
+    "headline_video_level": {
+      "deepfakes": 0.98,
+      "face2face": 0.95
+    },
+    "video_level": {
+      "deepfakes_their_dataset": 0.984,
+      "face2face_c23": 0.953
+    },
+    "per_image_c23_face2face": {
+      "meso4": 0.924,
+      "meso_inception4": 0.934
+    },
+    "params": {
+      "meso4": 27977,
+      "meso_inception4": 28615
+    }
+  },
+  "chance_auc": 0.5,
+  "reproduction": {
+    "meso4:ff_deepfakes": {
+      "acc": {
+        "per_seed": {
+          "42": 0.9341,
+          "1": 0.9186,
+          "2": 0.9236
+        },
+        "mean": 0.9254,
+        "std": 0.0079,
+        "n": 3
+      },
+      "auc": {
+        "per_seed": {
+          "42": 0.9849,
+          "1": 0.9836,
+          "2": 0.9803
+        },
+        "mean": 0.9829,
+        "std": 0.0024,
+        "n": 3
+      }
+    },
+    "meso4:ff_face2face": {
+      "acc": {
+        "per_seed": {
+          "42": 0.9154,
+          "1": 0.9287,
+          "2": 0.9166
+        },
+        "mean": 0.9202,
+        "std": 0.0074,
+        "n": 3
+      },
+      "auc": {
+        "per_seed": {
+          "42": 0.9676,
+          "1": 0.9754,
+          "2": 0.9715
+        },
+        "mean": 0.9715,
+        "std": 0.0039,
+        "n": 3
+      }
+    },
+    "meso_inception4:ff_deepfakes": {
+      "acc": {
+        "per_seed": {
+          "42": 0.9098,
+          "1": 0.9143,
+          "2": 0.9136
+        },
+        "mean": 0.9126,
+        "std": 0.0024,
+        "n": 3
+      },
+      "auc": {
+        "per_seed": {
+          "42": 0.9815,
+          "1": 0.9796,
+          "2": 0.9869
+        },
+        "mean": 0.9827,
+        "std": 0.0038,
+        "n": 3
+      }
+    },
+    "meso_inception4:ff_face2face": {
+      "acc": {
+        "per_seed": {
+          "42": 0.9227,
+          "1": 0.928,
+          "2": 0.9205
+        },
+        "mean": 0.9238,
+        "std": 0.0039,
+        "n": 3
+      },
+      "auc": {
+        "per_seed": {
+          "42": 0.9703,
+          "1": 0.9738,
+          "2": 0.9727
+        },
+        "mean": 0.9723,
+        "std": 0.0018,
+        "n": 3
+      }
+    }
+  },
+  "generalization": {
+    "meso4": {
+      "train": "ff_deepfakes",
+      "evals": {
+        "ff_deepfakes": {
+          "acc": {
+            "per_seed": {
+              "42": 0.9341,
+              "1": 0.9186,
+              "2": 0.9236
+            },
+            "mean": 0.9254,
+            "std": 0.0079,
+            "n": 3
+          },
+          "auc": {
+            "per_seed": {
+              "42": 0.9849,
+              "1": 0.9836,
+              "2": 0.9803
+            },
+            "mean": 0.9829,
+            "std": 0.0024,
+            "n": 3
+          }
+        },
+        "ff_face2face": {
+          "acc": {
+            "per_seed": {
+              "42": 0.5425,
+              "1": 0.5621,
+              "2": 0.5334
+            },
+            "mean": 0.546,
+            "std": 0.0147,
+            "n": 3
+          },
+          "auc": {
+            "per_seed": {
+              "42": 0.6208,
+              "1": 0.6317,
+              "2": 0.6103
+            },
+            "mean": 0.6209,
+            "std": 0.0107,
+            "n": 3
+          }
+        },
+        "openforensics": {
+          "acc": {
+            "per_seed": {
+              "42": 0.467,
+              "1": 0.4849,
+              "2": 0.4516
+            },
+            "mean": 0.4679,
+            "std": 0.0167,
+            "n": 3
+          },
+          "auc": {
+            "per_seed": {
+              "42": 0.4049,
+              "1": 0.4246,
+              "2": 0.3953
+            },
+            "mean": 0.4083,
+            "std": 0.0149,
+            "n": 3
+          }
+        },
+        "faces140k": {
+          "acc": {
+            "per_seed": {
+              "42": 0.4981,
+              "1": 0.4965,
+              "2": 0.4958
+            },
+            "mean": 0.4968,
+            "std": 0.0012,
+            "n": 3
+          },
+          "auc": {
+            "per_seed": {
+              "42": 0.4032,
+              "1": 0.4176,
+              "2": 0.4035
+            },
+            "mean": 0.4081,
+            "std": 0.0082,
+            "n": 3
+          }
+        }
+      }
+    },
+    "xception": {
+      "train": "ff_deepfakes",
+      "seeds": [
+        42
+      ],
+      "evals": {
+        "ff_deepfakes": {
+          "acc": 0.9764,
+          "auc": 0.9968
+        },
+        "ff_face2face": {
+          "acc": 0.5188,
+          "auc": 0.7177
+        },
+        "openforensics": {
+          "acc": 0.4775,
+          "auc": 0.2946
+        },
+        "faces140k": {
+          "acc": 0.4991,
+          "auc": 0.3344
+        }
+      }
+    }
+  },
+  "transfer_matrix_auc_seed42": {
+    "ff_deepfakes": {
+      "ff_deepfakes": 0.9849,
+      "ff_face2face": 0.6208,
+      "openforensics": 0.4049,
+      "faces140k": 0.4032
+    },
+    "ff_face2face": {
+      "ff_deepfakes": 0.6831,
+      "ff_face2face": 0.9676,
+      "openforensics": 0.5041,
+      "faces140k": 0.4656
+    },
+    "openforensics": {
+      "ff_deepfakes": 0.5004,
+      "ff_face2face": 0.5028,
+      "openforensics": 0.9567,
+      "faces140k": 0.5423
+    }
+  },
+  "threshold": [
+    {
+      "model": "meso4",
+      "dataset": "ff_deepfakes",
+      "seed": 42,
+      "threshold": 0.5,
+      "test_acc_05": 0.9341071428571428,
+      "test_acc_tuned": 0.9341071428571428,
+      "test_f1_05": 0.9343065693430657,
+      "test_f1_tuned": 0.9343065693430657
+    },
+    {
+      "model": "meso_inception4",
+      "dataset": "ff_deepfakes",
+      "seed": 42,
+      "threshold": 0.6900000000000001,
+      "test_acc_05": 0.9098214285714286,
+      "test_acc_tuned": 0.9276785714285715,
+      "test_f1_05": 0.914071805342862,
+      "test_f1_tuned": 0.927484333034915
+    },
+    {
+      "model": "meso4",
+      "dataset": "ff_face2face",
+      "seed": 42,
+      "threshold": 0.53,
+      "test_acc_05": 0.9153571428571429,
+      "test_acc_tuned": 0.9128571428571428,
+      "test_f1_05": 0.9119286510590858,
+      "test_f1_tuned": 0.9088191330343797
+    },
+    {
+      "model": "meso_inception4",
+      "dataset": "ff_face2face",
+      "seed": 42,
+      "threshold": 0.66,
+      "test_acc_05": 0.9226785714285715,
+      "test_acc_tuned": 0.9217857142857143,
+      "test_f1_05": 0.9221363064197087,
+      "test_f1_tuned": 0.919008875739645
+    },
+    {
+      "model": "meso4",
+      "dataset": "ff_deepfakes",
+      "seed": 1,
+      "threshold": 0.63,
+      "test_acc_05": 0.9185714285714286,
+      "test_acc_tuned": 0.92875,
+      "test_f1_05": 0.921595598349381,
+      "test_f1_tuned": 0.929192546583851
+    },
+    {
+      "model": "meso_inception4",
+      "dataset": "ff_deepfakes",
+      "seed": 1,
+      "threshold": 0.62,
+      "test_acc_05": 0.9142857142857143,
+      "test_acc_tuned": 0.9230357142857143,
+      "test_f1_05": 0.9174974217944311,
+      "test_f1_tuned": 0.9233777777777777
+    },
+    {
+      "model": "meso4",
+      "dataset": "ff_face2face",
+      "seed": 1,
+      "threshold": 0.54,
+      "test_acc_05": 0.92875,
+      "test_acc_tuned": 0.9273214285714285,
+      "test_f1_05": 0.9273620972146368,
+      "test_f1_tuned": 0.9251700680272109
+    },
+    {
+      "model": "meso_inception4",
+      "dataset": "ff_face2face",
+      "seed": 1,
+      "threshold": 0.5800000000000001,
+      "test_acc_05": 0.9280357142857143,
+      "test_acc_tuned": 0.9280357142857143,
+      "test_f1_05": 0.9265268915223336,
+      "test_f1_tuned": 0.9254945461268257
+    },
+    {
+      "model": "meso4",
+      "dataset": "ff_deepfakes",
+      "seed": 2,
+      "threshold": 0.59,
+      "test_acc_05": 0.9235714285714286,
+      "test_acc_tuned": 0.9266071428571429,
+      "test_f1_05": 0.924140375753279,
+      "test_f1_tuned": 0.9249589191163046
+    },
+    {
+      "model": "meso_inception4",
+      "dataset": "ff_deepfakes",
+      "seed": 2,
+      "threshold": 0.75,
+      "test_acc_05": 0.9135714285714286,
+      "test_acc_tuned": 0.94,
+      "test_f1_05": 0.9186554621848739,
+      "test_f1_tuned": 0.9386413440467495
+    },
+    {
+      "model": "meso4",
+      "dataset": "ff_face2face",
+      "seed": 2,
+      "threshold": 0.79,
+      "test_acc_05": 0.9166071428571428,
+      "test_acc_tuned": 0.9178571428571428,
+      "test_f1_05": 0.9175930827598376,
+      "test_f1_tuned": 0.9148148148148149
+    },
+    {
+      "model": "meso_inception4",
+      "dataset": "ff_face2face",
+      "seed": 2,
+      "threshold": 0.5700000000000001,
+      "test_acc_05": 0.9205357142857142,
+      "test_acc_tuned": 0.9201785714285714,
+      "test_f1_05": 0.918393544837704,
+      "test_f1_tuned": 0.9170840289371174
+    }
+  ],
+  "per_video": {
+    "meso4:ff_deepfakes": {
+      "per_seed": {
+        "42": {
+          "acc": 0.9607,
+          "auc": 0.9948,
+          "n_videos": 280
+        },
+        "1": {
+          "acc": 0.9357,
+          "auc": 0.9941,
+          "n_videos": 280
+        },
+        "2": {
+          "acc": 0.9679,
+          "auc": 0.9917,
+          "n_videos": 280
+        }
+      },
+      "acc": {
+        "mean": 0.9548,
+        "std": 0.0169,
+        "n": 3
+      },
+      "auc": {
+        "mean": 0.9936,
+        "std": 0.0016,
+        "n": 3
+      },
+      "frame_acc": {
+        "mean": 0.9254,
+        "std": 0.0079,
+        "n": 3
+      }
+    },
+    "meso4:ff_face2face": {
+      "per_seed": {
+        "42": {
+          "acc": 0.95,
+          "auc": 0.9823,
+          "n_videos": 280
+        },
+        "1": {
+          "acc": 0.9607,
+          "auc": 0.9874,
+          "n_videos": 280
+        },
+        "2": {
+          "acc": 0.9393,
+          "auc": 0.982,
+          "n_videos": 280
+        }
+      },
+      "acc": {
+        "mean": 0.95,
+        "std": 0.0107,
+        "n": 3
+      },
+      "auc": {
+        "mean": 0.9839,
+        "std": 0.0031,
+        "n": 3
+      },
+      "frame_acc": {
+        "mean": 0.9202,
+        "std": 0.0074,
+        "n": 3
+      }
+    },
+    "meso_inception4:ff_deepfakes": {
+      "per_seed": {
+        "42": {
+          "acc": 0.9429,
+          "auc": 0.9946,
+          "n_videos": 280
+        },
+        "1": {
+          "acc": 0.9464,
+          "auc": 0.993,
+          "n_videos": 280
+        },
+        "2": {
+          "acc": 0.9607,
+          "auc": 0.9984,
+          "n_videos": 280
+        }
+      },
+      "acc": {
+        "mean": 0.95,
+        "std": 0.0094,
+        "n": 3
+      },
+      "auc": {
+        "mean": 0.9954,
+        "std": 0.0028,
+        "n": 3
+      },
+      "frame_acc": {
+        "mean": 0.9126,
+        "std": 0.0024,
+        "n": 3
+      }
+    },
+    "meso_inception4:ff_face2face": {
+      "per_seed": {
+        "42": {
+          "acc": 0.9429,
+          "auc": 0.9842,
+          "n_videos": 280
+        },
+        "1": {
+          "acc": 0.9536,
+          "auc": 0.9861,
+          "n_videos": 280
+        },
+        "2": {
+          "acc": 0.9571,
+          "auc": 0.9853,
+          "n_videos": 280
+        }
+      },
+      "acc": {
+        "mean": 0.9512,
+        "std": 0.0074,
+        "n": 3
+      },
+      "auc": {
+        "mean": 0.9852,
+        "std": 0.0009,
+        "n": 3
+      },
+      "frame_acc": {
+        "mean": 0.9238,
+        "std": 0.0039,
+        "n": 3
+      }
+    }
+  },
+  "baseline_openforensics": {
+    "meso4": {
+      "accuracy": 0.8743,
+      "auc": 0.9567,
+      "precision": 0.9006,
+      "recall": 0.8434,
+      "f1": 0.8711
+    },
+    "meso_inception4": {
+      "accuracy": 0.8714,
+      "auc": 0.9519,
+      "precision": 0.882,
+      "recall": 0.8598,
+      "f1": 0.8707
+    }
+  },
+  "reverse_control_auc": {
+    "openforensics_to_ff_deepfakes": [
+      0.4592,
+      0.5004
+    ]
+  },
+  "probs_stems": {
+    "in_domain": "meso4_train-ff_deepfakes_eval-ff_deepfakes",
+    "cross_140k": "meso4_train-ff_deepfakes_eval-faces140k",
+    "cross_openforensics": "meso4_train-ff_deepfakes_eval-openforensics",
+    "repro_runs": {
+      "meso4:ff_deepfakes": "meso4_train-ff_deepfakes_eval-ff_deepfakes",
+      "meso4:ff_face2face": "meso4_train-ff_face2face_eval-ff_face2face",
+      "meso_inception4:ff_deepfakes": "meso_inception4_train-ff_deepfakes_eval-ff_deepfakes",
+      "meso_inception4:ff_face2face": "meso_inception4_train-ff_face2face_eval-ff_face2face"
+    }
+  }
+}
