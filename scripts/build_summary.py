@@ -122,6 +122,22 @@ def main() -> None:
                 }
     summary["per_video"] = pv or None
 
+    # Multi-source training (Task 7): meso4 trained on ff_deepfakes+ff_face2face union,
+    # evaluated frozen on the same four test sets. Stems: meso4_multi_s<seed>_train-ff_multi_...
+    multi: dict = {"train": "ff_deepfakes+ff_face2face", "evals": {}}
+    for ev in EVAL_SETS:
+        per_seed, accs, aucs = {}, [], []
+        for s in SEEDS:
+            rec = read(f"meso4_multi_s{s}_train-ff_multi_eval-{ev}")
+            if rec:
+                per_seed[str(s)] = {"acc": round(rec["accuracy"], 4),
+                                    "auc": round(rec["auc"], 4)}
+                accs.append(rec["accuracy"]); aucs.append(rec["auc"])
+        if accs:
+            multi["evals"][ev] = {"per_seed": per_seed,
+                                  "acc": stats(accs), "auc": stats(aucs)}
+    summary["multisource"] = multi if multi["evals"] else None
+
     # OpenForensics baseline (full-data runs, threshold 0.5).
     base = {}
     for m in MODELS:

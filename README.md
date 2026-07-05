@@ -21,9 +21,13 @@ Trained locally on an Apple Silicon MacBook Pro (M-series, 24 GB) using the PyTo
 
 ## What this project does
 1. **Reproduces** the paper's headline numbers on **FaceForensics++** (~98% accuracy on Deepfakes,
-   ~95% on Face2Face).
+   ~95% on Face2Face) — matching the paper's per-video protocol on Face2Face within noise.
 2. **Tests generalization** — takes the FaceForensics++-trained model and evaluates it, unchanged,
-   on other deepfake datasets to measure how far performance transfers.
+   on other deepfake datasets: neither a 28k- nor a 20.8M-parameter model transfers (mild ranking
+   inversion off-dataset).
+3. **Tests a remedy** — retrains on the union of two manipulation types: this **neutralizes the
+   inversion** on a related face-manipulation dataset (AUC 0.41 → 0.50) but recovers no usable
+   signal, and barely moves on the StyleGAN set — cross-generator detection stays open.
 
 ## Method in brief
 Both networks work at a *mesoscopic* scale — between raw pixel noise (destroyed by video
@@ -247,6 +251,33 @@ numbers stand as-is — threshold tuning (T20) applies only in-domain.
 </picture>
 
 </details>
+
+### Multi-source training — does broadening the sources help?
+One more experiment (Task 7): retrain Meso-4 on the **union** of FF++ Deepfakes + Face2Face
+(`--data-roots`, same hyperparameters, same three seeds) and evaluate frozen on the same four
+test sets. **OpenForensics and 140k stayed fully held out of every training**, so they remain
+honest unseen tests.
+
+| Eval dataset | Single-source AUC (DF only) | Multi-source AUC (DF + F2F) | Δ |
+|---|---|---|---|
+| FF++ Deepfakes | 0.983 ± 0.002 (in domain) | 0.964 ± 0.005 (in domain) | −0.019 |
+| FF++ Face2Face | 0.621 ± 0.011 (cross-method) | 0.959 ± 0.003 (in domain) | +0.338 |
+| OpenForensics (held out of both) | 0.408 ± 0.015 | **0.499 ± 0.002** | **+0.091** |
+| 140k StyleGAN (held out of both) | 0.408 ± 0.008 | 0.446 ± 0.019 | +0.038 |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_multisource.dark.png">
+  <img alt="Grouped bar chart comparing single-source and multi-source Meso-4 AUC on four test sets: both near 0.96 or higher in domain, and on the held-out datasets the multi-source model rises from 0.41 to exactly 0.50 on OpenForensics and from 0.41 to 0.45 on 140k StyleGAN" src="assets/fig_multisource.png">
+</picture>
+
+**Read honestly:** multi-source training does *not* produce usable cross-dataset transfer — no
+held-out AUC rises meaningfully above chance. What it does, consistently across seeds, is
+**erase the ranking inversion on the related face-manipulation dataset** (0.408 → 0.499 ± 0.002,
+i.e., exactly chance) and halve it on the fundamentally different StyleGAN generator
+(0.408 → 0.446, still below 0.5). Broadening the training sources stops the model from latching
+onto cues that point the *wrong way* elsewhere, at a modest in-domain cost (0.983 → 0.964 for
+one 28k-parameter model now covering two methods) — but it narrows the generalization gap
+rather than closing it. Robust cross-generator detection remains an open problem.
 
 ## Statistical analysis
 A video-clustered mixed-effects analysis in R backs the tables above —
