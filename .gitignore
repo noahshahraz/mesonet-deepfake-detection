@@ -10,6 +10,9 @@
 *.mp4
 *.avi
 
+# R analysis: raw per-image export is large + derivable (scripts/export_for_r.py)
+/analysis/data/
+
 # Kaggle credentials
 kaggle.json
 .kaggle/

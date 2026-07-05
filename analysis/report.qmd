@@ -1,0 +1,141 @@
+---
+title: "MesoNet reproduction — statistical analysis"
+subtitle: "Video-clustered GLMM, DeLong AUC comparisons, and bootstrap CIs (Task 6)"
+format:
+  html:
+    toc: true
+    embed-resources: true
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+---
+
+```{r setup}
+library(readr); library(dplyr); library(knitr)
+fixed  <- read_csv("output/glmm_fixed_effects.csv", show_col_types = FALSE)
+ranef  <- read_csv("output/glmm_ranef_sd.csv", show_col_types = FALSE)
+cells  <- read_csv("output/emmeans_cells.csv", show_col_types = FALSE)
+contr  <- read_csv("output/emmeans_contrasts.csv", show_col_types = FALSE)
+delong <- read_csv("output/delong.csv", show_col_types = FALSE)
+cis    <- read_csv("output/auc_cis.csv", show_col_types = FALSE)
+fmt <- function(x, d = 3) formatC(x, format = "f", digits = d)
+```
+
+## What this analysis is for
+
+The repo's README reports accuracies and AUCs as mean ± std over three training seeds. Those
+summaries treat every frame as independent — but 20 frames from the same source video are
+strongly correlated, so naive per-frame uncertainty is overconfident. The headline analysis here
+is therefore a **mixed-effects logistic regression (GLMM) with a random intercept per source
+video** (and per seed), fit on the 67,200 in-domain FaceForensics++ test predictions
+(2 models × 2 methods × 3 seeds × 5,600 frames):
+
+`correct ~ model * method + (1 | video_id) + (1 | seed)` — references:
+`model = meso_inception4`, `method = Face2Face`.
+
+**Data provenance:** one row per evaluated image, exported by `scripts/export_for_r.py` from the
+saved per-run probability files; regenerate with that script, then `Rscript models.R`, then
+`quarto render report.qmd`.
+
+## GLMM — fixed effects (odds ratios)
+
+```{r fixed}
+kable(fixed |> mutate(across(where(is.numeric), ~fmt(.x))), align = "l",
+      col.names = c("Term", "Odds ratio", "CI low", "CI high", "p"))
+```
+
+```{r fixed-values}
+or_row <- function(t) fixed |> filter(term == t)
+m4  <- or_row("modelmeso4")
+dfk <- or_row("methodDeepfakes")
+```
+
+Reading the table (odds ratios for a frame being classified **correctly**):
+
+- **Meso-4 vs MesoInception-4, Face2Face** (the reference cell): OR `r fmt(m4$estimate, 2)`
+  (95% CI `r fmt(m4$conf.low, 2)`–`r fmt(m4$conf.high, 2)`) — spans 1, the two architectures are
+  statistically indistinguishable there.
+- **Meso-4 vs MesoInception-4, Deepfakes**: the interaction is significant, and the emmeans
+  contrast below puts MesoInception-4/Meso-4 at OR ≈ 0.81 (p < 0.001) — **Meso-4's
+  threshold-0.5 advantage on Deepfakes is real, not seed noise**. Crucially, the DeLong section
+  shows the models' *AUCs* are essentially equal with seed-flipping sign, and the README's
+  threshold-tuning result shows the accuracies converge once each model gets its own validated
+  threshold. Together: a **statistically significant calibration advantage** for Meso-4 at the
+  default threshold — not better ranking.
+- **Deepfakes vs Face2Face** (for MesoInception-4): OR `r fmt(dfk$estimate, 2)`
+  (CI `r fmt(dfk$conf.low, 2)`–`r fmt(dfk$conf.high, 2)`) — at the 0.5-threshold decision level
+  Deepfakes is *harder* for MesoInception-4, reversing the paper's difficulty ordering; for
+  Meso-4 the interaction cancels it (net OR ≈ 1.03). The paper's DF-easier-than-F2F ordering
+  shows up in AUC (0.983 vs 0.972), not in thresholded accuracy — another calibration effect.
+- **Video-level variance dominates:** the `video_id` random-effect SD is
+  `r fmt(ranef$sd[ranef$group == "video_id"], 2)` on the log-odds scale vs
+  `r fmt(ranef$sd[ranef$group == "seed"], 2)` for `seed` — *which video a frame comes from
+  matters two orders of magnitude more than the training seed.* Some videos are simply hard:
+  this is exactly why the clustered analysis is the rigorous one.
+
+## Per-cell accuracies and the model contrast (emmeans)
+
+```{r cells}
+kable(cells |> mutate(across(where(is.numeric), ~fmt(.x))), align = "l")
+```
+
+```{r contrasts}
+kable(contr |> mutate(across(where(is.numeric), ~fmt(.x))), align = "l")
+```
+
+Note the per-cell probabilities (0.97–0.98) are **conditional on an average video** (random
+effect at zero) — higher than the raw marginal frame accuracies (0.91–0.93) because a minority
+of hard videos drags the marginal mean down; the contrast between cells is the meaningful part.
+The model contrast is n.s. on Face2Face (CI spans 1) but significant on Deepfakes
+(MesoInception-4/Meso-4 OR 0.81, p < 0.001) — the calibration reading above, not a ranking
+difference.
+
+## DeLong tests — are the two models' AUCs different?
+
+Paired DeLong comparisons on identical test frames, per method and seed:
+
+```{r delong}
+kable(delong |> mutate(across(where(is.numeric), ~fmt(.x, 4))), align = "l",
+      col.names = c("Method", "Seed", "AUC Meso-4", "AUC MesoInception-4", "Δ", "p (DeLong)"))
+```
+
+*Caveat:* DeLong treats frames as independent, which video clustering violates — these p-values
+are anti-conservative and reported as a secondary, protocol-standard check rather than the
+headline inference. Several Deepfakes comparisons are nominally significant (5,600 frames give
+power to detect |Δ| ≈ 0.003), **but the sign flips across seeds** (+, +, −), and every
+Face2Face comparison is n.s. — there is no consistent AUC superiority for either model, which is
+precisely why the significant GLMM Deepfakes contrast should be read as calibration, not
+ranking.
+
+## Bootstrap CIs for every reported AUC
+
+2,000 stratified bootstrap replicates per AUC. `excludes_chance` marks CIs that do not contain
+0.5:
+
+```{r cis}
+kable(cis |> arrange(desc(in_domain), train_source, eval_dataset, seed) |>
+        mutate(across(where(is.numeric), ~fmt(.x))), align = "l")
+```
+
+```{r cis-values}
+cross <- cis |> filter(!in_domain, eval_dataset %in% c("openforensics", "faces140k"))
+n_below <- sum(cross$ci_hi < 0.5)
+```
+
+The cross-dataset story, now with uncertainty: of the `r nrow(cross)` frozen-checkpoint
+evaluations on truly unseen datasets (OpenForensics, 140k), **`r n_below` have an entire 95% CI
+below 0.5** — the mild ranking inversion in the README is statistically supported per seed, not
+an artifact of point estimates. The cross-method control (Face2Face) CIs sit well above 0.5,
+confirming genuine (if degraded) transfer within the preprocessing domain.
+
+## Limitations
+
+- **Three seeds** is enough to bound run-to-run variance informally but not to estimate the seed
+  random effect precisely; its SD estimate above is unstable by construction.
+- DeLong p-values ignore frame clustering (noted above); the GLMM is the rigorous result.
+- The GLMM models the 0.5-threshold decision; it says nothing about calibration (covered by the
+  threshold-tuning analysis in the README).
+- All FaceForensics++ results are c23 compression, per-image unless stated; cross-dataset rows
+  reuse the frozen Deepfakes-trained Meso-4.
+```

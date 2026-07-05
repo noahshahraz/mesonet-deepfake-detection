@@ -248,6 +248,22 @@ numbers stand as-is — threshold tuning (T20) applies only in-domain.
 
 </details>
 
+## Statistical analysis
+A video-clustered mixed-effects analysis in R backs the tables above —
+[**read the full report**](https://noahshahraz.github.io/mesonet-deepfake-detection/stat_report.html)
+(source: [`analysis/`](analysis), renv-locked; regenerate with `python scripts/export_for_r.py`,
+`Rscript analysis/models.R`, `quarto render analysis/report.qmd`). Requires R ≥ 4.6 and the
+[Quarto CLI](https://quarto.org). Headlines:
+
+- **GLMM** (`correct ~ model * method + (1|video_id) + (1|seed)`, 67,200 frames): video identity
+  dominates — random-effect SD 2.01 log-odds vs 0.016 for seed. Meso-4's threshold-0.5 Deepfakes
+  advantage is significant (OR 0.81, p < 0.001) yet DeLong AUC deltas are ~0.003 with
+  seed-flipping sign and tuned accuracies converge: a **calibration** advantage, not ranking.
+- **Bootstrap CIs**: all six cross-dataset AUCs (3 seeds × 2 unseen datasets) have their entire
+  95% CI below 0.5 — the mild ranking inversion is statistically supported per seed.
+- The paper's Deepfakes-easier ordering holds in AUC but reverses in thresholded accuracy for
+  MesoInception-4 — calibration again; the 3-seed limitation stands.
+
 ## Limitations / future work
 - **Three seeds** (42, 1, 2) for the FF++ reproduction and Meso-4 generalization numbers;
   Xception and the OpenForensics baseline remain single-seed. The spread is small (±0.2–0.9 pts
