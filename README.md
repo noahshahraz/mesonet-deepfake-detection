@@ -287,13 +287,24 @@ A video-clustered mixed-effects analysis in R backs the tables above —
 [Quarto CLI](https://quarto.org). Headlines:
 
 - **GLMM** (`correct ~ model * method + (1|video_id) + (1|seed)`, 67,200 frames): video identity
-  dominates — random-effect SD 2.01 log-odds vs 0.016 for seed. Meso-4's threshold-0.5 Deepfakes
-  advantage is significant (OR 0.81, p < 0.001) yet DeLong AUC deltas are ~0.003 with
-  seed-flipping sign and tuned accuracies converge: a **calibration** advantage, not ranking.
+  dominates — random-effect SD 2.01 log-odds vs 0.016 for seed. Meso-4 vs MesoInception-4 on
+  Deepfakes: **OR ≈ 1.23 (95% CI 1.13–1.35), p < 0.001** — a significant calibration edge at
+  threshold 0.5 (AUCs identical, tuned accuracies converge), not a ranking difference. The
+  Face2Face contrast is non-significant (OR ≈ 0.94, CI 0.86–1.03).
 - **Bootstrap CIs**: all six cross-dataset AUCs (3 seeds × 2 unseen datasets) have their entire
   95% CI below 0.5 — the mild ranking inversion is statistically supported per seed.
 - The paper's Deepfakes-easier ordering holds in AUC but reverses in thresholded accuracy for
   MesoInception-4 — calibration again; the 3-seed limitation stands.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_glmm_forest.dark.png">
+  <img alt="Forest plot of the Meso-4 versus MesoInception-4 odds ratio per manipulation method, Meso-4 in the numerator: Deepfakes at 1.23 with a 95% confidence interval of 1.13 to 1.35, clear of the OR-equals-1 line; Face2Face at 0.94 with an interval spanning 1, not significant" src="assets/fig_glmm_forest.png">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/fig_auc_cis.dark.png">
+  <img alt="Dot-and-whisker plot of every reported AUC with bootstrap 95% confidence intervals: twelve in-domain points near 1.0, three cross-method points around 0.62, and six cross-dataset points whose whiskers sit entirely below the dashed 0.5 chance line" src="assets/fig_auc_cis.png">
+</picture>
 
 ## Limitations / future work
 - **Three seeds** (42, 1, 2) for the FF++ reproduction and Meso-4 generalization numbers;

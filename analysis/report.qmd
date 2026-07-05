@@ -56,9 +56,9 @@ Reading the table (odds ratios for a frame being classified **correctly**):
 - **Meso-4 vs MesoInception-4, Face2Face** (the reference cell): OR `r fmt(m4$estimate, 2)`
   (95% CI `r fmt(m4$conf.low, 2)`–`r fmt(m4$conf.high, 2)`) — spans 1, the two architectures are
   statistically indistinguishable there.
-- **Meso-4 vs MesoInception-4, Deepfakes**: the interaction is significant, and the emmeans
-  contrast below puts MesoInception-4/Meso-4 at OR ≈ 0.81 (p < 0.001) — **Meso-4's
-  threshold-0.5 advantage on Deepfakes is real, not seed noise**. Crucially, the DeLong section
+- **Meso-4 vs MesoInception-4, Deepfakes**: the interaction is significant. With Meso-4 in the
+  numerator, the emmeans contrast gives **OR ≈ 1.23 (95% CI 1.13–1.35), p < 0.001** — Meso-4's
+  threshold-0.5 advantage on Deepfakes is real, not seed noise. Crucially, the DeLong section
   shows the models' *AUCs* are essentially equal with seed-flipping sign, and the README's
   threshold-tuning result shows the accuracies converge once each model gets its own validated
   threshold. Together: a **statistically significant calibration advantage** for Meso-4 at the
@@ -87,9 +87,10 @@ kable(contr |> mutate(across(where(is.numeric), ~fmt(.x))), align = "l")
 Note the per-cell probabilities (0.97–0.98) are **conditional on an average video** (random
 effect at zero) — higher than the raw marginal frame accuracies (0.91–0.93) because a minority
 of hard videos drags the marginal mean down; the contrast between cells is the meaningful part.
-The model contrast is n.s. on Face2Face (CI spans 1) but significant on Deepfakes
-(MesoInception-4/Meso-4 OR 0.81, p < 0.001) — the calibration reading above, not a ranking
-difference.
+The model contrast is n.s. on Face2Face (Meso-4-numerator OR ≈ 0.94, CI 0.86–1.03) but
+significant on Deepfakes (Meso-4-numerator OR ≈ 1.23, CI 1.13–1.35, p < 0.001; the table above
+stores the reciprocal MesoInception-4/Meso-4 direction) — the calibration reading above, not a
+ranking difference.
 
 ## DeLong tests — are the two models' AUCs different?
 

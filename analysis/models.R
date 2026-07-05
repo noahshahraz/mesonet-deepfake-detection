@@ -94,3 +94,6 @@ for (i in seq_len(nrow(auc_rows))) {
 write_csv(bind_rows(cis), "output/auc_cis.csv")
 
 message("Done — outputs in analysis/output/")
+
+# ---- Task 8: statistical visualizations (reads output/*.csv only; also standalone) --------
+source("plots.R")
