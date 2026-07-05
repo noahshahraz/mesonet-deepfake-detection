@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" font-family="'Segoe UI',Roboto,system-ui,-apple-system,sans-serif">
-  <rect width="1200" height="440" rx="20" fill="#ffffff"/>
-  <rect x="1" y="1" width="1198" height="438" rx="19" fill="none" stroke="#d0d7de" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="'Segoe UI',Roboto,system-ui,-apple-system,sans-serif">
+  <rect width="1200" height="560" rx="20" fill="#ffffff"/>
+  <rect x="1" y="1" width="1198" height="558" rx="19" fill="none" stroke="#d0d7de" stroke-width="2"/>
 
   <!-- Title -->
   <text x="60" y="92" font-size="52" font-weight="700" fill="#1f2328">MesoNet · Deepfake Detection</text>
