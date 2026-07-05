@@ -54,9 +54,10 @@ python -m src.train --config configs/default.yaml --data-root ~/mesonet-data/ope
 python -m src.eval  --config configs/default.yaml --data-root ~/mesonet-data/openforensics --checkpoint checkpoints/best.pth
 ```
 
-Reviewer-friendly fast variant (~5 min, same code path, lower numbers). Caution: run names are
-`<model>_<dataset>`, so this **overwrites** `checkpoints/best.pth` and the full-run
-`meso4_openforensics` checkpoint/outputs if you have them:
+Reviewer-friendly fast variant (~5 min, same code path, lower numbers). Run names default to
+`<model>_<dataset>`, and re-running a name **refuses to overwrite** existing checkpoints/outputs —
+pass `--overwrite` to replace them or `--run-name`/`--out-stem` for a fresh set.
+(`checkpoints/best.pth` is a convenience copy that always tracks the most recent best run.)
 ```bash
 python -m src.train --config configs/default.yaml --data-root ~/mesonet-data/openforensics --max-per-class-train 2000 --epochs 3 && \
 python -m src.eval  --config configs/default.yaml --data-root ~/mesonet-data/openforensics --checkpoint checkpoints/best.pth

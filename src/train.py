@@ -19,6 +19,7 @@ from src.data import build_dataloaders
 from src.models import build_model
 from src.utils import get_device, load_config, predict_probs, set_seed
 from src.utils.metrics import compute_metrics
+from src.utils.overwrite import guard_overwrite
 
 
 def parse_args() -> argparse.Namespace:
@@ -35,6 +36,10 @@ def parse_args() -> argparse.Namespace:
                    help="override train.lr (e.g. lower for fine-tuning pretrained weights)")
     p.add_argument("--max-per-class-train", type=int, default=None,
                    help="cap images/class for fast iterations on the large Kaggle sets")
+    p.add_argument("--run-name", default=None,
+                   help="artifact name (default <model>_<dataset>); checkpoints/logs use this")
+    p.add_argument("--overwrite", action="store_true",
+                   help="allow replacing an existing run's checkpoint/log")
     return p.parse_args()
 
 
@@ -86,6 +91,13 @@ def main() -> None:
     device = get_device(cfg.get_path("device", "mps"))
     print(f"[train] device = {device}")
 
+    # Resolve artifact paths and guard against clobbering a previous run before any real work.
+    run_name = args.run_name or f"{cfg.model.name}_{cfg.data.name}"
+    ckpt_dir = Path(cfg.train.checkpoint_dir)
+    ckpt_path = ckpt_dir / f"{run_name}_best.pth"
+    log_path = Path(cfg.train.log_dir) / f"{run_name}.jsonl"
+    guard_overwrite([ckpt_path, log_path], args.overwrite)
+
     train_loader, val_loader, test_loader = build_dataloaders(cfg)
     print(
         f"[train] dataset = {cfg.data.name} @ {cfg.data.root} | "
@@ -105,13 +117,8 @@ def main() -> None:
     criterion = nn.BCEWithLogitsLoss()
     optimizer = build_optimizer(cfg, model)
 
-    run_name = f"{cfg.model.name}_{cfg.data.name}"
-    ckpt_dir = Path(cfg.train.checkpoint_dir)
     ckpt_dir.mkdir(parents=True, exist_ok=True)
-    ckpt_path = ckpt_dir / f"{run_name}_best.pth"
-    log_dir = Path(cfg.train.log_dir)
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_path = log_dir / f"{run_name}.jsonl"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.write_text("")  # fresh log per run
 
     best_auc, best_epoch, epochs_without_improvement = -math.inf, -1, 0

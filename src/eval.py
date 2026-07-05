@@ -18,6 +18,7 @@ from src.data import build_eval_loader
 from src.models import build_model
 from src.utils import get_device, load_config, predict_probs, set_seed
 from src.utils.metrics import compute_metrics
+from src.utils.overwrite import guard_overwrite
 from src.utils.plots import save_confusion_matrix, save_roc_curve
 
 
@@ -28,6 +29,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--dataset", default=None, help="override cfg.data.name for cross-dataset eval")
     p.add_argument("--data-root", default=None, help="explicit data root (overrides --dataset root)")
     p.add_argument("--threshold", type=float, default=None)
+    p.add_argument("--out-stem", default=None,
+                   help="outputs/ filename stem (default <model>_train-<X>_eval-<Y>)")
+    p.add_argument("--overwrite", action="store_true",
+                   help="allow replacing existing outputs for this stem")
     return p.parse_args()
 
 
@@ -68,6 +73,10 @@ def main() -> None:
     print(f"[eval] loaded {model_name} (trained on {trained_on}, epoch {ckpt.get('epoch', '?')}) "
           f"from {args.checkpoint}")
 
+    out_dir = Path("outputs")
+    stem = args.out_stem or f"{model_name}_train-{trained_on}_eval-{cfg.data.name}"
+    guard_overwrite([out_dir / f"{stem}.json"], args.overwrite)
+
     loader = build_eval_loader(cfg)
     print(f"[eval] test set = {cfg.data.name} @ {cfg.data.root} ({len(loader.dataset)} images)")
 
@@ -78,9 +87,7 @@ def main() -> None:
     print_metrics_table(metrics, cfg.eval.metrics)
 
     # T11 artefacts: metrics JSON, raw labels/probs (reused by T20 threshold tuning), plots.
-    out_dir = Path("outputs")
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = f"{model_name}_train-{trained_on}_eval-{cfg.data.name}"
     record = {
         "model": model_name,
         "trained_on": trained_on,
