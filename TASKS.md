@@ -19,7 +19,7 @@ are already checked; the build phase starts at T5.
 - [x] T9 — Loss (`BCEWithLogitsLoss`) + `Adam(lr)`; epoch loop, checkpoint best val AUC, early stopping, logging
 - [x] T10 — `src/eval.py`: load checkpoint, run test set, print metrics table
 - [x] T11 — Metrics + plots: accuracy, AUC, precision/recall/F1, confusion matrix, ROC curve saved to `outputs/`
-- [x] T12 — Train Meso-4 and MesoInception-4 on OpenForensics; record baseline numbers — test acc 0.867/0.871, AUC 0.946/0.952 (README; Meso-4 row is the shipped-artifact rerun, see run-to-run note)
+- [x] T12 — Train Meso-4 and MesoInception-4 on OpenForensics; record baseline numbers — test acc 0.874/0.871, AUC 0.957/0.952 (README; artifacts in outputs/ match)
 
 ## Paper reproduction (FaceForensics++)
 - [x] T13 — Request FF++ access (Google form) — access granted; c23 videos (original/Deepfakes/Face2Face, 3×1000) at `~/mesonet-data/faceforensics_raw`

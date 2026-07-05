@@ -35,9 +35,20 @@ def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--config", default="configs/default.yaml")
     p.add_argument("--data-root-base", default=str(Path.home() / "mesonet-data"))
-    p.add_argument("--runs", nargs="+", default=DEFAULT_RUNS, help="model:dataset pairs")
+    p.add_argument("--runs", nargs="+", default=DEFAULT_RUNS,
+                   help="model:dataset[:seed] triples; seed 42 (default) uses the legacy "
+                        "un-suffixed artifact names")
     p.add_argument("--metric", default="accuracy", help="metric best_threshold maximises")
+    p.add_argument("--out", default="outputs/threshold_tuning.json")
     return p.parse_args()
+
+
+def run_names(model: str, ds: str, seed: int) -> tuple[str, str]:
+    """(checkpoint run name, eval stem) for a seeded run; seed 42 keeps legacy names."""
+    suffix = "" if seed == 42 else f"_s{seed}"
+    ckpt_run = f"{model}_{ds}{suffix}"
+    stem = f"{model}{suffix}_train-{ds}_eval-{ds}"
+    return ckpt_run, stem
 
 
 def main() -> None:
@@ -49,11 +60,14 @@ def main() -> None:
 
     rows = []
     for run in args.runs:
-        model_name, ds = run.split(":")
+        parts = run.split(":")
+        model_name, ds = parts[0], parts[1]
+        seed = int(parts[2]) if len(parts) > 2 else 42
+        ckpt_run, stem = run_names(model_name, ds, seed)
         cfg["data"]["name"] = ds
         cfg["data"]["root"] = str(Path(args.data_root_base).expanduser() / ds)
 
-        ckpt = torch.load(f"checkpoints/{model_name}_{ds}_best.pth",
+        ckpt = torch.load(f"checkpoints/{ckpt_run}_best.pth",
                           map_location="cpu", weights_only=False)
         model = build_model(model_name, num_classes=cfg.model.num_classes,
                             dropout=cfg.model.dropout, image_size=cfg.data.image_size).to(device)
@@ -63,18 +77,18 @@ def main() -> None:
             model, build_eval_loader(cfg, cfg.data.val_split), device)
         t_star = best_threshold(val_labels, val_probs, metric=args.metric)
 
-        npz = np.load(f"outputs/{model_name}_train-{ds}_eval-{ds}_probs.npz")
+        npz = np.load(f"outputs/{stem}_probs.npz")
         base = compute_metrics(npz["labels"], npz["probs"], threshold=cfg.eval.threshold)
         tuned = compute_metrics(npz["labels"], npz["probs"], threshold=t_star)
-        rows.append({"model": model_name, "dataset": ds, "threshold": t_star,
+        rows.append({"model": model_name, "dataset": ds, "seed": seed, "threshold": t_star,
                      "test_acc_05": base["accuracy"], "test_acc_tuned": tuned["accuracy"],
                      "test_f1_05": base["f1"], "test_f1_tuned": tuned["f1"]})
-        print(f"{model_name:16s} {ds:13s} t*={t_star:.2f} (val) | "
+        print(f"{model_name:16s} {ds:13s} s{seed:<3d} t*={t_star:.2f} (val) | "
               f"test acc {base['accuracy']:.4f} -> {tuned['accuracy']:.4f} "
               f"(+{tuned['accuracy'] - base['accuracy']:+.4f}) | "
               f"f1 {base['f1']:.4f} -> {tuned['f1']:.4f}")
 
-    out = Path("outputs/threshold_tuning.json")
+    out = Path(args.out)
     out.write_text(json.dumps(rows, indent=2))
     print(f"\n[tune] saved {out}")
 

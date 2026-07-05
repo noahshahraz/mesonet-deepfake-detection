@@ -36,6 +36,7 @@ def parse_args() -> argparse.Namespace:
                    help="override train.lr (e.g. lower for fine-tuning pretrained weights)")
     p.add_argument("--max-per-class-train", type=int, default=None,
                    help="cap images/class for fast iterations on the large Kaggle sets")
+    p.add_argument("--seed", type=int, default=None, help="override cfg seed (multi-seed runs)")
     p.add_argument("--run-name", default=None,
                    help="artifact name (default <model>_<dataset>); checkpoints/logs use this")
     p.add_argument("--overwrite", action="store_true",
@@ -59,6 +60,8 @@ def apply_overrides(cfg, args: argparse.Namespace):
         cfg["train"]["lr"] = args.lr
     if args.max_per_class_train is not None:
         cfg["data"]["max_per_class_train"] = args.max_per_class_train
+    if args.seed is not None:
+        cfg["seed"] = args.seed
     return cfg
 
 

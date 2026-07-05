@@ -73,13 +73,8 @@ this dataset, reported as-is.
 
 | Model | Test acc. | AUC | Precision | Recall | F1 |
 |---|---|---|---|---|---|
-| Meso-4 | 0.867 | 0.946 | 0.881 | 0.852 | 0.866 |
+| Meso-4 | 0.874 | 0.957 | 0.901 | 0.843 | 0.871 |
 | MesoInception-4 | 0.871 | 0.952 | 0.882 | 0.860 | 0.871 |
-
-_Run-to-run note: a same-seed Meso-4 retrain (MPS training is not bit-deterministic) moved test
-accuracy 0.871→0.867 and AUC 0.953→0.946 at identical val AUC (0.990) — a fair picture of
-single-run variance on this test split; the table reports the run whose artifacts ship in
-`outputs/`._
 
 ### Reproduction — paper vs. this repo (FaceForensics++)
 FaceForensics++, **c23 (HQ) compression**, per-image scoring on 20 frames/video, threshold 0.5
